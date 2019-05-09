@@ -241,8 +241,8 @@ def get_row_of_names(img_path):
     right_names = right_name_str.split(" ")
     names = left_names + right_names
     for hero_num in range(1, 13):
-        dict['Name ' + str(hero_num)].append(names[hero_num])
-        previous_prediction['Name ' + str(hero_num)] = names[hero_num]
+        dict['Name ' + str(hero_num)].append(names[hero_num - 1])
+        previous_prediction['Name ' + str(hero_num)] = names[hero_num - 1]
 
 def clean_predictions(map):
     pause_flag = False
@@ -256,6 +256,7 @@ def clean_predictions(map):
     roundcounter = 0
     roundflag = True
     initflag = True
+    nameflag = False
 
     #Frames different between load in and actual round start
     map_type = map_dic[map]
@@ -289,6 +290,7 @@ def clean_predictions(map):
                     dict['Accuracy ' + str(hero_num)].append('')
                     dict['Ult_Charge ' + str(hero_num)].append('')
                     dict['Ult_Accuracy ' + str(hero_num)].append('')
+                    dict['Name ' + str(hero_num)].append('')
                 dict['Kills'].append([''])
                 dict['Deaths'].append([''])
             previous_prediction['GameState'] = all_predictions['GameState'][i][0]
@@ -443,7 +445,7 @@ def clean_predictions(map):
 
         if len(dict['Name 1']) < len(dict['Hero 1']):
             for hero_num in range(1, 13):
-                dict['Name ' + str(hero_num)] = previous_prediction['Name ' + str(hero_num)]
+                dict['Name ' + str(hero_num)].append(previous_prediction['Name ' + str(hero_num)])
 
         if update_image:
             #Lobby Status
@@ -466,7 +468,9 @@ def clean_predictions(map):
                     if roundflag:
                         dict['Duration'].append(previous_prediction['Duration'])
                         if (roundcounter == 0 and initflag) or ((i+1)*15) >= (roundstart + start_frames):
-                            print("WTF DOES THIS DO: " + all_predictions['Image'][i])
+                            if not nameflag:
+                                get_row_of_names(all_predictions['Image'][i])
+                                nameflag = True
                             roundstart = currImage
                             initflag = False
                         if roundcounter != 0:
@@ -474,8 +478,6 @@ def clean_predictions(map):
                     else:
                         if currImage < roundstart + start_frames:
                             dict['Duration'].append(dict['Duration'][-1])
-                            get_row_of_names(all_predictions['Image'][i])
-                            print("GETTING ROW OF NAMES")
                         else:
                             prevImage = int(dict['Image'][-2].split("/")[2].split('.')[0])
                             timediff = (currImage - prevImage)/60
@@ -492,7 +494,7 @@ def clean_predictions(map):
                 previous_prediction['Duration'] = dict['Duration'][-1]
 
     for key in dict.keys():
-        print(key + " " + str(len(dict[key])))
+        print(key + ": " + str(len(dict[key])))
 
 """
 Make the beautiful CSV that we said we would

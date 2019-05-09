@@ -443,10 +443,6 @@ def clean_predictions(map):
                  dict['Ult_Charge ' + str(hero_num)].append(previous_prediction['Ult_Charge ' + str(hero_num)][0])
                  dict['Ult_Accuracy ' + str(hero_num)].append(previous_prediction['Ult_Charge ' + str(hero_num)][1])
 
-        if len(dict['Name 1']) < len(dict['Hero 1']):
-            for hero_num in range(1, 13):
-                dict['Name ' + str(hero_num)].append(previous_prediction['Name ' + str(hero_num)])
-
         if update_image:
             #Lobby Status
             currImage = int(dict['Image'][-1].split("/")[2].split('.')[0])
@@ -492,6 +488,10 @@ def clean_predictions(map):
                         timediff = (currImage - prevImage)/60
                         dict['Duration'].append(timediff  + dict['Duration'][-1])
                 previous_prediction['Duration'] = dict['Duration'][-1]
+                
+        if len(dict['Name 1']) < len(dict['Hero 1']):
+            for hero_num in range(1, 13):
+                dict['Name ' + str(hero_num)].append(previous_prediction['Name ' + str(hero_num)])
 
     for key in dict.keys():
         print(key + ": " + str(len(dict[key])))

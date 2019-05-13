@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import ast
 
 def get_map_info(csv_path):
     df = pd.read_csv(csv_path, sep = ",")
@@ -10,7 +11,7 @@ def get_map_info(csv_path):
 
     return date, map, opponent, total_game_time
 
-def get_ttcu_ttuu(csv_path):
+def get_ttcu_ttuu(csv_path, team1, team2):
     df = pd.read_csv(csv_path, sep = ",")
     tracker = []
     final_ttcu = {'Player 1': {}, 'Player 2': {}, 'Player 3': {}, 'Player 4': {}, 'Player 5': {}, 'Player 6': {},
@@ -80,6 +81,14 @@ def get_ttcu_ttuu(csv_path):
     #Split by teams
     final_team1_ttcu, final_team2_ttcu = dict(list(final_ttcu.items())[:len(final_ttcu)//2]), dict(list(final_ttcu.items())[len(final_ttcu)//2:])
     final_team1_ttuu, final_team2_ttuu = dict(list(final_ttuu.items())[:len(final_ttuu)//2]), dict(list(final_ttuu.items())[len(final_ttuu)//2:])
+
+    for num, name in enumerate(team1):
+        final_team1_ttcu[name] = final_team1_ttcu.pop('Player ' + str(num + 1))
+        final_team1_ttuu[name] = final_team1_ttuu.pop('Player ' + str(num + 1))
+
+    for num, name in enumerate(team2):
+        final_team2_ttcu[name] = final_team2_ttcu.pop('Player ' + str(num + 7))
+        final_team2_ttuu[name] = final_team2_ttuu.pop('Player ' + str(num + 7))
 
     return final_team1_ttcu, final_team2_ttcu, final_team1_ttuu, final_team2_ttuu
 
@@ -160,14 +169,59 @@ def get_teamcomps(csv_path):
 
     return final_team1_comps, final_team2_comps
 
+def get_rosters(csv_path):
+    df = pd.read_csv(csv_path, sep = ",")
+
+    left_team, right_team = [], []
+    for num in range(1,13):
+        if num < 7:
+            left_team.append(df.loc[len(df)//2]['Name ' + str(num)])
+        else:
+            right_team.append(df.loc[len(df)//2]['Name ' + str(num)])
+
+    return left_team, right_team
+
+def get_kill_deaths(csv_path, team1, team2):
+    df = pd.read_csv(csv_path, sep = ",")
+    kd_dict = {key: {'Total': {'Kills': 0, 'Deaths': 0}} for key in (team1+team2)}
+
+    for count, (i, row) in enumerate(df.iterrows()):
+        kill_array, death_array= ast.literal_eval(row['Kills']), ast.literal_eval(row['Deaths'])
+        kill_name, kill_hero, death_name, death_hero = kill_array[0], kill_array[1], death_array[0], death_array[1]
+
+        if kill_name == "" and death_name == "":
+            continue
+
+        #Suicide case
+        if not kill_hero == "":
+            if kill_hero in kd_dict[kill_name]:
+                kd_dict[kill_name][kill_hero]['Kills'] += 1
+            else:
+                kd_dict[kill_name][kill_hero] = {'Kills': 1, 'Deaths': 0}
+            kd_dict[kill_name]['Total']['Kills'] += 1
+
+        if death_hero in kd_dict[death_name]:
+            kd_dict[death_name][death_hero]['Deaths'] += 1
+        else:
+            kd_dict[death_name][death_hero] = {'Kills': 0, 'Deaths': 1}
+        kd_dict[death_name]['Total']['Deaths'] += 1
+
+    team1_kd, team2_kd = dict(list(kd_dict.items())[:len(kd_dict)//2]), dict(list(kd_dict.items())[len(kd_dict)//2:])
+    return team1_kd, team2_kd
+
+def get_fight_stats(csv_path, team1, team2):
+    #To be implemented
+    return
+
 if __name__ == '__main__':
     csv_folder = "csvs/to_csv/"
     for csv in os.listdir(csv_folder):
         csv_path = csv_folder + csv
-        team1_comps, team2_comps = get_teamcomps(csv_path)
-        team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu = get_ttcu_ttuu(csv_path)
         date, map, opponent, total_game_time = get_map_info(csv_path)
-
+        team1, team2 = get_rosters(csv_path)
+        team1_comps, team2_comps = get_teamcomps(csv_path)
+        team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu = get_ttcu_ttuu(csv_path, team1, team2)
+        team1_kd, team2_kd = get_kill_deaths(csv_path, team1, team2)
         print("===============================================")
         print("Match Summary")
         print("===============================================")
@@ -175,12 +229,20 @@ if __name__ == '__main__':
         print("Map:", map)
         print("Opponent:", opponent)
         print("Duration:", total_game_time)
+        print("Team 1:", " ".join(team1))
+        print("Team 2:", " ".join(team2))
         print('===============================================')
         print("Team 1 Comps: ")
         print(team1_comps)
         print('------------------------------------------------------------------------------------------------')
         print("Team 2 Comps: ")
         print(team2_comps)
+        print('------------------------------------------------------------------------------------------------')
+        print("Team 1 Kills/Deaths: ")
+        print(team1_kd)
+        print('------------------------------------------------------------------------------------------------')
+        print("Team 2 Kills/Deaths: ")
+        print(team2_kd)
         print('------------------------------------------------------------------------------------------------')
         print("Team 1 TTCU: ")
         print(team1_ttcu)

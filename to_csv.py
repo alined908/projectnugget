@@ -238,9 +238,6 @@ def get_name_from_color(kill_color, death_color, kill_hero, death_hero):
 
     killer = previous_prediction['Name ' + str(kill_index)]
     death = previous_prediction['Name ' + str(death_index)]
-    print(killer)
-    print(death)
-
     return killer, death
 
 def append_previous():
@@ -422,7 +419,6 @@ def clean_predictions(map):
                     good_flag = True
 
         if good_flag:
-            print(all_predictions['Image'][i])
             kill_player, death_player = get_name_from_color(curr_kill_color, curr_death_color, curr_kill, curr_death)
             if not kill_player == 'Not Right':
                 dict['Kills'].append([kill_player, curr_kill])
@@ -523,7 +519,7 @@ if __name__ == '__main__':
         df.to_csv(csv_folder + folder + "+kdtest2.csv", sep=',')
         print("Successfully created csv!")
     """
-    csv_folder = "csvs/to_csv/"
+    csv_folder = "csvs/"
     scrim_folder = "vod_data/"
     for folder in os.listdir(scrim_folder):
         vod_path = scrim_folder + folder + "/"
@@ -562,5 +558,5 @@ if __name__ == '__main__':
     #print(all_predictions)
 
     df = pd.DataFrame(data = all_predictions)
-    df.to_csv(csv_folder + "STUPID3.csv", sep=',')
+    df.to_csv(csv_folder + "STUPID.csv", sep=',')
     """

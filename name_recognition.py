@@ -20,7 +20,7 @@ def clean_string(names):
         if len(i) == 1 or i.islower() or i.lower() == 'ff':
             continue
         cleaned = cleaned + i.upper() + " "
-
+    cleaned = cleaned.rstrip()
     numNames = len(cleaned.split())
     if numNames == 6:
         msg = "Success ==> Found " + str(numNames) + " ==> "

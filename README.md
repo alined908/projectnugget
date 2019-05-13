@@ -16,3 +16,4 @@ TODO
 - Implement fight statistics (first elim, first death, fight win %, fight win % when use ult, etc)
 - Eliminate rows that happen x seconds before new round.
 - Set up database to store statistics 
+- Fix bug to implement assists tracking

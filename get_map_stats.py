@@ -209,8 +209,41 @@ def get_kill_deaths(csv_path, team1, team2):
     team1_kd, team2_kd = dict(list(kd_dict.items())[:len(kd_dict)//2]), dict(list(kd_dict.items())[len(kd_dict)//2:])
     return team1_kd, team2_kd
 
+#1. General Fight Information: Length of Fight, Left/Right Player Roster, Left/Right Hero Roster, Left Team/Right Team Kill/Death #, Left/Right # of Ults Available, Left Team/Right Team # of Ults Used (And which ones), First Blood (which team?)
+#2. Player Specific: First Kill %, First Death %
+#3  Hero Specific: Fight Win % When Hero Dies First
+#4. From #1 -- > Team(Roster of 6) First Blood, First Blood Win %, First Death, First Death Win %
+#5. From #1 --> Fight Win % when X ults more/less used
 def get_fight_stats(csv_path, team1, team2):
-    #To be implemented
+    df = pd.read_csv(csv_path, sep = ",")
+
+    fight_player_dict = {key: {'Fights': {'Win': 0, 'Lose': 0, 'Total': 0}, 'First Elim': 0, 'First Death' : 0} for key in (team1+team2)}
+    general_fight_dict = {"Length": [], 'L Players': [], 'R Players': [], 'L Heros': [], 'R Heros': [], 'L Kill #': [], 'R Kill #': [],
+    'L # Ults Used': [], 'R # Ults Used ': [], 'L Ults Used': [], 'R Ults Used': [], 'L # Ults Avail': [], 'R # Ults Avail': [], 'First Blood': []}
+    fight_kill_counter, fight_death_counter, duration_tracker = 0, 0, 0
+    in_fight = False
+
+    for count, (i, row) in enumerate(df.iterrows()):
+        kill_array, death_array= ast.literal_eval(row['Kills']), ast.literal_eval(row['Deaths'])
+        kill_name, kill_hero, death_name, death_hero = kill_array[0], kill_array[1], death_array[0], death_array[1]
+
+        if row['Duration'] == 0:
+            continue
+
+        if not in_fight:
+            if death_name == "" and death_hero == "":
+                continue
+            else:
+                print("Fight Starts: " + kill_array + " --> " + death_array)
+                in_fight = True
+                fight_start, countdown = row['Duration'], 14
+        else:
+            print("Counting as in fight")
+            if kill_name == "" and kill_hero == "":
+                continue
+            else:
+
+
     return
 
 if __name__ == '__main__':
@@ -250,9 +283,9 @@ if __name__ == '__main__':
         print("Team 2 TTCU: ")
         print(team2_ttcu)
         print('------------------------------------------------------------------------------------------------')
-        print("Team 1 TTUU: ")
-        print(team1_ttuu)
-        print('------------------------------------------------------------------------------------------------')
-        print("Team 2 TTUU: ")
-        print(team2_ttuu)
-        print('------------------------------------------------------------------------------------------------')
+        #print("Team 1 TTUU: ")
+        #print(team1_ttuu)
+        #print('------------------------------------------------------------------------------------------------')
+        #print("Team 2 TTUU: ")
+        #rint(team2_ttuu)
+        #print('------------------------------------------------------------------------------------------------')

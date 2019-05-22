@@ -1,13 +1,14 @@
+
 import numpy as np
 import cv2
 import os
 import pandas as pd
-import tensorflow as tf
 import matplotlib.pyplot as plt
+
 
 IMAGE_PATH = "E:/Project Nugget/killfeed_images/"
 
-#Killfeed Top Row Coordinates
+#Killfeed Top Row Coordinates used as baseline
 my_y = 107
 my_yh = 145
 my_x = 950
@@ -28,9 +29,55 @@ def get_color_boxes(image, lower_val, upper_val):
             x, y, w, h = cv2.boundingRect(contour)
     return x, y, w, h
 
-def read_killfeed(image, train):
+def get_windows(img):
+  lower_val, upper_val  = np.array([20, 100, 100]), np.array([40, 255, 255])
+  img = cv2.imread(img)[107:350, 950:1280]
+  hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+  mask = cv2.inRange(hsv, lower_val, upper_val)
+  res = cv2.bitwise_and(img, img, mask = mask)
+  _, contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+  #cv2.drawContours(img, contours, -1, (0,255,0), 3)
+
+  ranges = []
+
+  #Find all possible contours
+  for i, contour in enumerate(contours):
+      contour_area = cv2.contourArea(contour)
+      x,y,w,h = cv2.boundingRect(contour)
+      #Only append contours in which the height is greater than 30 but not greater than 40
+      #Avoids assist boxes (killing mech, immortality field, bongo) and poorly drawn boxes that overlap
+      if (h > 20 and h < 40):
+        ranges.append([y,y+h])
+
+  ranges.sort()
+
+  #Keep only the contours that are the outermost (exclude names, character icons)
+  #Want to grab the windows for each kill
+  unique_ranges = []
+  for box in ranges:
+    if len(unique_ranges) == 0:
+      unique_ranges.append(box)
+    else:
+      if (box[0] > unique_ranges[-1][1]):
+        unique_ranges.append(box)
+
+  #sanity check and draw
+  for y in unique_ranges:
+    cv2.rectangle(img, (0,y[0]), (330, y[1]), (0, 255, 0), 2)
+  #plt.imshow(img)
+
+  #Each window should be 38 pixels tall (145-107), with 4 pixels before the top border, and the remaining y pixels allocated below
+  y_windows = []
+  for y in unique_ranges:
+    start = y[0] - 4
+    end = y[1] + 38 - (y[1]-y[0] + 4)
+    y_windows.append([start, end])
+  print(y_windows)
+  return(y_windows)
+
+def read_killfeed(image, train, y, yh):
   img = image
-  img = img[my_y:my_yh, my_x:my_xw]
+  img = img[my_y + y:my_y + yh, my_x:my_xw]
   kill_w, kill_h= 36, 26
   assist_w, assist_h  = 16, 22
   hero_coord, kill_coord, death_coord  = [], [], []
@@ -121,17 +168,7 @@ def read_killfeed(image, train):
         if x < kills_x_end and  x > hero_coord[0][0][1]:
           assist_coord.append([[x, x+assist_w], [y, y+ assist_h], color])
     contour += 1
-  """
-  bad_assists = []
-  for hero in hero_coord:
-      for index, assist in enumerate(assist_coord):
-          if hero[0][0] < assist[0][0] < hero[0][1]:
-            bad_assists.append(index)
 
-  for bad in bad_assists:
-      del assist_coord[bad]
-  """
-  #print("hero coord ", hero_coord)
 
   if train:
       hero_coord = sorted(hero_coord)
@@ -166,6 +203,7 @@ def read_killfeed(image, train):
     cv2.rectangle(rgb_img2, (death[0][0], death[1][0]), (death[0][1], death[1][1]), (0, 0, 255), 2)
   for assist in assist_coord:
     cv2.rectangle(rgb_img2, (assist[0][0], assist[1][0]), (assist[0][1], assist[1][1]), (255, 0, 0), 2)
+  plt.imshow(rgb_img2)
 
   #cv2.imshow('img', rgb_img2)
   #cv2.waitKey(1)
@@ -177,4 +215,6 @@ if __name__ == '__main__':
     pictures = os.listdir(IMAGE_PATH)
     for index, i in enumerate(pictures):
         print(i)
-        read_killfeed(cv2.imread(IMAGE_PATH + i))
+        windows = get_windows(IMAGE_PATH + i, lower_yellow, upper_yellow)
+        for window in windows:
+            read_killfeed(cv2.imread(IMAGE_PATH + i), False, window[0], window[1])

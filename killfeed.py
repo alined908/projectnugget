@@ -29,9 +29,9 @@ def get_color_boxes(image, lower_val, upper_val):
             x, y, w, h = cv2.boundingRect(contour)
     return x, y, w, h
 
-def get_windows(imag):
+def get_windows(img):
   lower_val, upper_val  = np.array([20, 100, 100]), np.array([40, 255, 255])
-  img = cv2.imread(IMAGE_PATH + pictures[2])[107:350, 950:1280]
+  img = cv2.imread(img)[107:350, 950:1280]
   hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
   mask = cv2.inRange(hsv, lower_val, upper_val)
   res = cv2.bitwise_and(img, img, mask = mask)
@@ -217,4 +217,4 @@ if __name__ == '__main__':
         print(i)
         windows = get_windows(IMAGE_PATH + i, lower_yellow, upper_yellow)
         for window in windows:
-        read_killfeed(cv2.imread(IMAGE_PATH + i), False, window[0], window[1])
+            read_killfeed(cv2.imread(IMAGE_PATH + i), False, window[0], window[1])

@@ -1,4 +1,4 @@
-# Project Nugget 
+# Project Nugget
 Overwatch CV - Get stats from an Overwatch game recording
 
 ## 1. Example Frame:
@@ -10,10 +10,15 @@ Overwatch CV - Get stats from an Overwatch game recording
 ## 3. Example stats:
 ![examplestats](https://user-images.githubusercontent.com/47507106/57599467-9c5de500-750b-11e9-8130-c483474d84ea.PNG)
 
-TODO
+# TODO
 --------
+## Major
 - Implement processing of multiple events in killfeed on same frame.
-- Implement fight statistics (first elim, first death, fight win %, fight win % when use ult, etc)
+- Set up database to store statistics
+
+## Minor
 - Eliminate rows that happen x seconds before new round.
-- Set up database to store statistics 
-- Fix bug to implement assists tracking
+- Implement assists tracking
+
+## Reminders
+- Manually input of roundtype

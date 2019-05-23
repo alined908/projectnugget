@@ -69,15 +69,17 @@ def get_windows(img):
   #Each window should be 38 pixels tall (145-107), with 4 pixels before the top border, and the remaining y pixels allocated below
   y_windows = []
   for y in unique_ranges:
-    start = y[0] - 4
-    end = y[1] + 38 - (y[1]-y[0] + 4)
+    start = max(y[0] - 4, 0)
+    end = start + 38
     y_windows.append([start, end])
-  print(y_windows)
+  #print(y_windows)
+  if len(y_windows) == 0:
+      y_windows.append([0,38])
   return(y_windows)
 
-def read_killfeed(image, train, y, yh):
+def read_killfeed(image, train, window_y, window_yh):
   img = image
-  img = img[my_y + y:my_y + yh, my_x:my_xw]
+  img = img[my_y + window_y:my_y + window_yh, my_x:my_xw]
   kill_w, kill_h= 36, 26
   assist_w, assist_h  = 16, 22
   hero_coord, kill_coord, death_coord  = [], [], []
@@ -100,10 +102,10 @@ def read_killfeed(image, train, y, yh):
   #Find the bounding rectangles and only select the ones that the first index is < 15
   rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
   cv2.drawContours(rgb_img, contours, -1, (0, 0, 255), 2)
-  cv2.rectangle(rgb_img, (yellow_x, yellow_y), (yellow_x+yellow_w, yellow_y+yellow_h), (0, 0, 255))
-  cv2.rectangle(rgb_img, (blue_x, blue_y), (blue_x+blue_w, blue_y+blue_h), (0, 0, 255))
-  #xd = plt.imshow(rgb_img)
-  #plt.show()
+  cv2.rectangle(rgb_img, (yellow_x, yellow_y), (yellow_x+yellow_w, yellow_y+yellow_h), (0, 255, 0))
+  cv2.rectangle(rgb_img, (blue_x, blue_y), (blue_x+blue_w, blue_y+blue_h), (255, 0, 0))
+  #cv2.imshow('img', rgb_img)
+  #cv2.waitKey(0)
 
   for i, contour in enumerate(contours):
     contour_area = cv2.contourArea(contour)
@@ -122,8 +124,17 @@ def read_killfeed(image, train, y, yh):
       else:
         color = 'blue'
       #Get Everyone
-      if contour_area > 40 and contour_area < 1000:
+      #Make sure only contours passed in are at most within each boxes start and end areas
+      right_w = max(yellow_x + yellow_w, blue_x +  blue_w)
+      left_x = min(yellow_x, blue_x)
+      right_x = max(yellow_x, blue_x)
+      if contour_area > 150 and contour_area < 1000 and x + w < right_w and x > left_x and x < right_x + 10:
         contour_coord.append([[x, x+w], [y, y+h], color])
+  rgb_img3 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+  for contour in contour_coord:
+      cv2.rectangle(rgb_img3, (contour[0][0], contour[1][0]), (contour[0][1], contour[1][1]), (0, 0, 255))
+  #cv2.imshow('img', rgb_img3)
+  #cv2.waitKey(0)
 
   #Eliminate duplicate or bad contours
   unique_contour_ranges = contour_coord
@@ -158,8 +169,6 @@ def read_killfeed(image, train, y, yh):
   for unique_contour in unique_contour_ranges:
     x = unique_contour[0][0]
     y = unique_contour[1][0]
-    #print(x)
-    #print(kills_x_end)
     color = unique_contour[2]
     if contour == 0 or contour == num_contours - 1:
       hero_coord.append([[x, x+kill_w] , [y, y+kill_h], color])
@@ -203,11 +212,20 @@ def read_killfeed(image, train, y, yh):
     cv2.rectangle(rgb_img2, (death[0][0], death[1][0]), (death[0][1], death[1][1]), (0, 0, 255), 2)
   for assist in assist_coord:
     cv2.rectangle(rgb_img2, (assist[0][0], assist[1][0]), (assist[0][1], assist[1][1]), (255, 0, 0), 2)
-  plt.imshow(rgb_img2)
+  #plt.imshow(rgb_img2)
 
   #cv2.imshow('img', rgb_img2)
-  #cv2.waitKey(1)
-  #plt.show()
+  #cv2.waitKey(0)
+
+  #Shift the returned coordinates to include the offset of the window's start values
+  for index, y_val in enumerate(kill_coord[0][1]):
+      kill_coord[0][1][index] = y_val + window_y
+  for index, y_val in enumerate(death_coord[0][1]):
+      death_coord[0][1][index] = y_val + window_y
+  for index, y_val in enumerate(assist_coord[0][1]):
+      assist_coord[0][1][index] = y_val + window_y
+  print(kill_coord)
+  print(death_coord)
   return (kill_coord, death_coord, assist_coord)
 
 
@@ -215,6 +233,6 @@ if __name__ == '__main__':
     pictures = os.listdir(IMAGE_PATH)
     for index, i in enumerate(pictures):
         print(i)
-        windows = get_windows(IMAGE_PATH + i, lower_yellow, upper_yellow)
+        windows = get_windows(IMAGE_PATH + i)
         for window in windows:
             read_killfeed(cv2.imread(IMAGE_PATH + i), False, window[0], window[1])

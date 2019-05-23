@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import keras
-from killfeed import read_killfeed
+from killfeed import read_killfeed, get_windows
 from keras.models import Sequential
 from keras.models import load_model
 from keras.layers import Input, Dense, Conv2D, Flatten, Dropout, MaxPooling2D, Activation
@@ -110,7 +110,7 @@ def killfeed_load_images_for_model(X_batch, resize_to_720P=True, train=False):
         for index, path in enumerate(X_batch):
             #print("Image is: ", path)
             img = cv2.imread(path)
-            kill_coord, death_coord, assist_coord = read_killfeed(img, train)
+            kill_coord, death_coord, assist_coord = read_killfeed(img, train, 0, 38)
             # Resize image
             x, xw, y, yh = kill_coord[0][0][0], kill_coord[0][0][1], kill_coord[0][1][0], kill_coord[0][1][1]
             #print("Assist coord", assist_coord)
@@ -130,24 +130,41 @@ def killfeed_load_images_for_model(X_batch, resize_to_720P=True, train=False):
     else:
         for path in X_batch:
             img = cv2.imread(path)
-            kill_coord, death_coord, assist_coord = read_killfeed(img, train)
-            x, xw, y, yh = kill_coord[0][0][0], kill_coord[0][0][1], kill_coord[0][1][0], kill_coord[0][1][1]
-            img1 = img[107 + y:107 + yh, 950+x  :950+xw]
-            X_loaded_kills.append(np.array(img1)/(255))
-            kill_colors.append(kill_coord[0][2])
+            windows = get_windows(path)
+            frame_kills = []
+            frame_deaths = []
+            frame_assists = []
+            frame_kill_colors = []
+            frame_death_colors = []
+            frame_assists_colors = []
+            for window in windows:
+                kill_coord, death_coord, assist_coord = read_killfeed(cv2.imread(path), False, window[0], window[1])
+                x, xw, y, yh = kill_coord[0][0][0], kill_coord[0][0][1], kill_coord[0][1][0], kill_coord[0][1][1]
+                img1 = img[107 + y:107 + yh, 950+x  :950+xw]
+                frame_kills.append(np.array(img1)/(255))
+                frame_kill_colors.append(kill_coord[0][2])
 
-            x, xw, y, yh = death_coord[0][0][0], death_coord[0][0][1], death_coord[0][1][0], death_coord[0][1][1]
-            img2 = img[107 + y:107 + yh, 950+x  :950+xw]
-            X_loaded_deaths.append(np.array(img2)/(255))
-            death_colors.append(death_coord[0][2])
+                x, xw, y, yh = death_coord[0][0][0], death_coord[0][0][1], death_coord[0][1][0], death_coord[0][1][1]
+                img2 = img[107 + y:107 + yh, 950+x  :950+xw]
+                shape = (np.array(img2)/255).shape
+                if shape != (26,36,3):
+                    print(path)
+                frame_deaths.append(np.array(img2)/(255))
+                frame_death_colors.append(death_coord[0][2])
 
-            for assist in assist_coord:
-                x, xw, y, yh = assist[0][0], assist[0][1], assist[1][0], assist[1][1]
-                img3 = img[107 + y:107 + yh, 950+x  :950+xw]
-                X_loaded_assists.append(np.array(img3)/(255))
-            assists_colors.append(assist_coord[0][2])
+                for assist in assist_coord:
+                    x, xw, y, yh = assist[0][0], assist[0][1], assist[1][0], assist[1][1]
+                    img3 = img[107 + y:107 + yh, 950+x  :950+xw]
+                    frame_assists.append(np.array(img3)/(255))
+                frame_assists_colors.append(assist_coord[0][2])
+            X_loaded_kills.append(frame_kills)
+            X_loaded_deaths.append(frame_deaths)
+            X_loaded_assists.append(frame_assists)
+            kill_colors.append(frame_kill_colors)
+            death_colors.append(frame_death_colors)
+            assists_colors.append(frame_assists_colors)
 
-        cv2.imwrite('sample.jpg', X_loaded_kills[10] * 255)
+        #cv2.imwrite('sample.jpg', X_loaded_kills[10][0] * 255)
         return X_loaded_kills, X_loaded_deaths, X_loaded_assists, kill_colors, death_colors, assists_colors
 
 def train():

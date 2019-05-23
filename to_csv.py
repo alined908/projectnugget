@@ -527,7 +527,7 @@ if __name__ == '__main__':
         print("Relabeling files")
         print("Relabeling: ", folder)
         print("================================================")
-    #vod_path = "vod_data/test/"
+    vod_path = "vod_data/test/"
     sorted_img_array = relabel_folder_contents(vod_path)
     print("================================================")
     print("Loading Images")
@@ -566,4 +566,4 @@ if __name__ == '__main__':
     for key in all_predictions.keys():
         print(key + ": " + str(len(all_predictions[key])))
     df = pd.DataFrame(data = all_predictions)
-    df.to_csv(csv_folder + "STUPID+multipletest.csv", sep=',')
+    df.to_csv(csv_folder + "STUPID+multitest.csv", sep=',')

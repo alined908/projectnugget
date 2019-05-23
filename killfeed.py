@@ -14,29 +14,59 @@ my_yh = 145
 my_x = 950
 my_xw = 1280
 
-def get_color_boxes(image, lower_val, upper_val):
-    color_contour_area = 0
+def get_color_boxes(image, lower_val_1, upper_val_1, lower_val_2, upper_val_2):
     img = image
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_val, upper_val)
-    res = cv2.bitwise_and(img, img, mask = mask)
-    _, contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    x, y, w, h, = -1, -1, -1, -1
-    for i, contour in enumerate(contours):
+    hsv1 = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask1 = cv2.inRange(hsv1, lower_val_1, upper_val_1)
+    _, contours1, _ = cv2.findContours(mask1, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    hsv2 = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask2 = cv2.inRange(hsv2, lower_val_2, upper_val_2)
+    _, contours2, _ = cv2.findContours(mask2, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    x1, y1, w1, h1, = -1, -1, -1, -1
+    x2, y2, w2, h2, = -1, -1, -1, -1
+
+    color_1_contour_sizes = []
+    color_2_contour_sizes = []
+    for i, contour in enumerate(contours1):
         contour_area = cv2.contourArea(contour)
-        if contour_area > color_contour_area:
-            color_contour_area = contour_area
-            x, y, w, h = cv2.boundingRect(contour)
-    return x, y, w, h
+        x, y, w, h = cv2.boundingRect(contour)
+        color_1_contour_sizes.append([contour_area, x, y, w, h])
+    for i, contour in enumerate(contours2):
+        contour_area = cv2.contourArea(contour)
+        x, y, w, h = cv2.boundingRect(contour)
+        color_2_contour_sizes.append([contour_area, x, y, w, h])
+    color_1_contour_sizes.sort(reverse = True)
+    color_2_contour_sizes.sort(reverse = True)
+
+    yellow_right = True
+    b,g,r = img[8, 308]
+    if b > r:
+      yellow_right = False
+
+    #Do this if yellow/lower_val_1 is on the right
+    if yellow_right:
+        for contour2 in color_2_contour_sizes:
+            for contour1 in color_1_contour_sizes:
+                if contour2[1] + contour2[3] < contour1[1]:
+                    x1, y1, w1, h1 = contour1[1], contour1[2], contour1[3], contour1[4]
+                    x2, y2, w2, h2 = contour2[1], contour2[2], contour2[3], contour2[4]
+                    return x1, y1, w1, h1, x2, y2, w2, h2
+    else:
+    #Do this if blue is on the right
+        for contour1 in color_1_contour_sizes:
+            for contour2 in color_2_contour_sizes:
+                if contour1[1] + contour1[3] < contour2[1]:
+                    x1, y1, w1, h1 = contour1[1], contour1[2], contour1[3], contour1[4]
+                    x2, y2, w2, h2 = contour2[1], contour2[2], contour2[3], contour2[4]
+                    return x1, y1, w1, h1, x2, y2, w2, h2
+    return x1, y1, w1, h1, x2, y2, w2, h2
 
 def get_windows(img):
   lower_val, upper_val  = np.array([20, 100, 100]), np.array([40, 255, 255])
   img = cv2.imread(img)[107:350, 950:1280]
   hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
   mask = cv2.inRange(hsv, lower_val, upper_val)
-  res = cv2.bitwise_and(img, img, mask = mask)
   _, contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-  #cv2.drawContours(img, contours, -1, (0,255,0), 3)
 
   ranges = []
 
@@ -64,6 +94,8 @@ def get_windows(img):
   #sanity check and draw
   for y in unique_ranges:
     cv2.rectangle(img, (0,y[0]), (330, y[1]), (0, 255, 0), 2)
+    cv2.imshow('img', img)
+    cv2.waitKey(0)
   #plt.imshow(img)
 
   #Each window should be 38 pixels tall (145-107), with 4 pixels before the top border, and the remaining y pixels allocated below
@@ -88,11 +120,9 @@ def read_killfeed(image, train, window_y, window_yh):
   lower_blue, upper_blue = np.array([70, 100, 100]), np.array([130, 255, 255])
 
   #Get the outlining boxes of blue and yellow for each kill
-  yellow_x, yellow_y, yellow_w, yellow_h = get_color_boxes(img, lower_yellow, upper_yellow)
-  blue_x, blue_y, blue_w, blue_h = get_color_boxes(img, lower_blue, upper_blue)
-  #If the height of these boxes are not at least as big as a kill then that means these are the mini boxes which we will not deal with
+  yellow_x, yellow_y, yellow_w, yellow_h, blue_x, blue_y, blue_w, blue_h = get_color_boxes(img, lower_yellow, upper_yellow, lower_blue, upper_blue)
   if ((yellow_h < kill_h) or (blue_h < kill_h)) and not train:
-      return ([[[0, kill_w],[0,kill_h], 'no kill']], [[[0, kill_w],[0, kill_h], 'no kill']], [[[0, assist_w],[0, assist_h], 'no kill']])
+    return ([[[0, kill_w],[0,kill_h], 'no kill']], [[[0, kill_w],[0, kill_h], 'no kill']], [[[0, assist_w],[0, assist_h], 'no kill']])
 
   #Get the outlines for the heroes and assists
   imgray = ~cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -104,14 +134,18 @@ def read_killfeed(image, train, window_y, window_yh):
   cv2.drawContours(rgb_img, contours, -1, (0, 0, 255), 2)
   cv2.rectangle(rgb_img, (yellow_x, yellow_y), (yellow_x+yellow_w, yellow_y+yellow_h), (0, 255, 0))
   cv2.rectangle(rgb_img, (blue_x, blue_y), (blue_x+blue_w, blue_y+blue_h), (255, 0, 0))
-  #cv2.imshow('img', rgb_img)
-  #cv2.waitKey(0)
+  cv2.imshow('img', rgb_img)
+  cv2.waitKey(0)
+
+  right_w = max(yellow_x + yellow_w, blue_x + blue_w)
+  left_x = min(yellow_x, blue_x)
+  right_x = max(yellow_x, blue_x)
 
   for i, contour in enumerate(contours):
     contour_area = cv2.contourArea(contour)
     x,y,w,h = cv2.boundingRect(contour)
     #Get only square boxes
-    if y < 11 and y >= 5 and ((x > yellow_x  and x < yellow_x + yellow_w) or (x > blue_x  and x < blue_x + blue_w)):
+    if y < 11 and y >= 4 and ((x > yellow_x  and x < yellow_x + yellow_w) or (x > blue_x  and x < blue_x + blue_w)):
       #Get color of the contour
       pixely = y+1
       if (x+2) >= my_xw - my_x:
@@ -125,16 +159,14 @@ def read_killfeed(image, train, window_y, window_yh):
         color = 'blue'
       #Get Everyone
       #Make sure only contours passed in are at most within each boxes start and end areas
-      right_w = max(yellow_x + yellow_w, blue_x +  blue_w)
-      left_x = min(yellow_x, blue_x)
-      right_x = max(yellow_x, blue_x)
+      #
       if contour_area > 150 and contour_area < 1000 and x + w < right_w and x > left_x and x < right_x + 10:
         contour_coord.append([[x, x+w], [y, y+h], color])
   rgb_img3 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
   for contour in contour_coord:
       cv2.rectangle(rgb_img3, (contour[0][0], contour[1][0]), (contour[0][1], contour[1][1]), (0, 0, 255))
-  #cv2.imshow('img', rgb_img3)
-  #cv2.waitKey(0)
+  cv2.imshow('img', rgb_img3)
+  cv2.waitKey(0)
 
   #Eliminate duplicate or bad contours
   unique_contour_ranges = contour_coord
@@ -212,10 +244,8 @@ def read_killfeed(image, train, window_y, window_yh):
     cv2.rectangle(rgb_img2, (death[0][0], death[1][0]), (death[0][1], death[1][1]), (0, 0, 255), 2)
   for assist in assist_coord:
     cv2.rectangle(rgb_img2, (assist[0][0], assist[1][0]), (assist[0][1], assist[1][1]), (255, 0, 0), 2)
-  #plt.imshow(rgb_img2)
-
-  #cv2.imshow('img', rgb_img2)
-  #cv2.waitKey(0)
+  cv2.imshow('img', rgb_img2)
+  cv2.waitKey(0)
 
   #Shift the returned coordinates to include the offset of the window's start values
   for index, y_val in enumerate(kill_coord[0][1]):
@@ -224,8 +254,6 @@ def read_killfeed(image, train, window_y, window_yh):
       death_coord[0][1][index] = y_val + window_y
   for index, y_val in enumerate(assist_coord[0][1]):
       assist_coord[0][1][index] = y_val + window_y
-  print(kill_coord)
-  print(death_coord)
   return (kill_coord, death_coord, assist_coord)
 
 

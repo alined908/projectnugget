@@ -3,6 +3,8 @@ import numpy as np
 import os
 import pandas as pd
 import keras
+import time
+import multiprocessing
 from keras.models import load_model
 from read_vod_left_side import get_dataset, read_vod_load_left_for_model
 from read_vod_right_side import get_dataset, read_vod_load_right_for_model
@@ -122,7 +124,23 @@ def predict(sorted_img_array):
     images = sorted_img_array
     all_predictions['Image'] = temp
 
-    left_hero_array = read_vod_load_left_for_model(temp, resize_to_720P=True, train = False)
+    # Multiprocessing to reduce overall time
+    start = time.time()
+    async_results, pool = [], multiprocessing.Pool(processes=7)
+    models = [read_vod_load_left_for_model, read_vod_load_right_for_model, left_ult_charge_load_images_for_model, right_ult_charge_load_images_for_model, gamestate_load_images_for_model, pause_load_images_for_model, killfeed_load_images_for_model]
+
+    #Load into pool
+    for index, model in enumerate(models):
+        result = pool.apply_async(model, (temp, True, False, ))
+        async_results.append(result)
+
+    left_hero_array, right_hero_array, left_ult_array, right_ult_array, gamestate_array, paused_array, killfeed_array = async_results[0].get(), async_results[1].get(), async_results[2].get(), async_results[3].get(), async_results[4].get(), async_results[5].get(), async_results[6].get()
+
+    #kd = pool.apply_async(, (temp, True, False, ))
+    kills_array, deaths_array, assists_array, kills_colors, deaths_colors, assists_colors = killfeed_array
+    finish = time.time()
+    #print("Process took:", finish-start, "seconds")
+
     for index, hero in enumerate(left_hero_array):
         left_hero_array[index] = np.asarray(hero)
         left_hero_array[index] = left_hero_model.predict(left_hero_array[index])
@@ -132,7 +150,6 @@ def predict(sorted_img_array):
             #SLot in hero prediction and accuracy
             all_predictions['Hero ' + str(index + 1)].append([inverse_hero[image.index(max(image))], max(image)])
 
-    right_hero_array = read_vod_load_right_for_model(temp, resize_to_720P=True, train = False)
     for index, hero in enumerate(right_hero_array):
         right_hero_array[index] = np.asarray(hero)
         right_hero_array[index] = right_hero_model.predict(right_hero_array[index])
@@ -142,7 +159,7 @@ def predict(sorted_img_array):
             #SLot in hero prediction and accuracy
             all_predictions['Hero ' + str(index + 7)].append([inverse_hero[image.index(max(image))], max(image)])
 
-    left_ult_array = left_ult_charge_load_images_for_model(temp, resize_to_720P=True, train = False)
+
     for index, ult in enumerate(left_ult_array):
         left_ult_array[index] = np.asarray(ult)
         left_ult_array[index] = left_ult_model.predict(left_ult_array[index])
@@ -151,7 +168,7 @@ def predict(sorted_img_array):
             image = image.tolist()
             all_predictions['Ult_Charge ' + str(index + 1)].append([inverse_ult[image.index(max(image))], max(image)])
 
-    right_ult_array = right_ult_charge_load_images_for_model(temp, resize_to_720P=True, train = False)
+
     for index, ult in enumerate(right_ult_array):
         right_ult_array[index] = np.asarray(ult)
         right_ult_array[index] = right_ult_model.predict(right_ult_array[index])
@@ -160,19 +177,18 @@ def predict(sorted_img_array):
             image = image.tolist()
             all_predictions['Ult_Charge ' + str(index + 7)].append([inverse_ult[image.index(max(image))], max(image)])
 
-    gamestate_array = gamestate_load_images_for_model(temp, resize_to_720P= True, train=False)
+
     gamestate_predict = gamestate_model.predict(np.asarray(gamestate_array))
     for index, image in enumerate(gamestate_predict):
         img = image.tolist()
         all_predictions['GameState'].append([inverse_gamestate[img.index(max(img))], max(img)])
 
-    paused_array = pause_load_images_for_model(temp, resize_to_720P = True, train = False)
+
     paused_predict = pause_model.predict(np.asarray(paused_array))
     for index, image in enumerate(paused_predict):
         img = image.tolist()
         all_predictions['Paused'].append([inverse_pause[img.index(max(img))], max(img)])
 
-    kills_array, deaths_array, assists_array, kills_colors, deaths_colors, assists_colors = killfeed_load_images_for_model(temp, resize_to_720P = True, train = False)
     for element in kills_array:
         img_kills = []
         kills_predict = killfeed_model.predict(np.asarray(element))
@@ -386,12 +402,6 @@ def clean_predictions(map):
                  dict['Ult_Charge ' + str(hero_num)].append(previous_prediction['Ult_Charge ' + str(hero_num)][0])
                  dict['Ult_Accuracy ' + str(hero_num)].append(previous_prediction['Ult_Charge ' + str(hero_num)][1])
 
-        if len(dict['GameState']) > len(dict['Hero 1']) or (len(dict['Paused']) > len(dict['Hero 1'])):
-            for hero_num in range(1,13):
-                 dict['Hero ' + str(hero_num)].append("")
-                 dict['Accuracy ' + str(hero_num)].append("")
-                 dict['Ult_Charge ' + str(hero_num)].append("")
-                 dict['Ult_Accuracy ' + str(hero_num)].append("")
         if len(dict['GameState']) < len(dict['Hero 1']):
             dict['GameState'].append(previous_prediction['GameState'])
         if len(dict['Paused']) < len(dict['Hero 1']):
@@ -435,7 +445,7 @@ def clean_predictions(map):
 
             if good_flag:
                 kill_player, death_player = get_name_from_color(curr_kill_color, curr_death_color, curr_kill, curr_death)
-                if not kill_player == 'Not Right':
+                if kill_player != 'Not Right' and death_player != 'Not Right':
                     loop_counter += 1
                     dict['Kills'].append([kill_player, curr_kill])
                     dict['Deaths'].append([death_player, curr_death])
@@ -447,7 +457,7 @@ def clean_predictions(map):
                     update_image = True
 
                     #kill/death but no change
-                    dict['GameState'].append(all_predictions['GameState'][i-1][0])
+                    dict['GameState'].append(previous_prediction['GameState'])
                     dict['Paused'].append('live')
                     for hero_num in range(1, 13):
                         if len(dict['Hero ' + str(hero_num)]) < len(dict['Image']):

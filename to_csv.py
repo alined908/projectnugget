@@ -500,7 +500,7 @@ def clean_predictions(map):
 Make the beautiful CSV that we said we would
 """
 if __name__ == '__main__':
-    """
+    
     csv_folder = "csvs/to_csv/"
     scrim_folder = "vod_data/"
     for folder in os.listdir(scrim_folder):
@@ -527,7 +527,7 @@ if __name__ == '__main__':
         print("Relabeling files")
         print("Relabeling: ", folder)
         print("================================================")
-    vod_path = "vod_data/test/"
+    vod_path = "vod_data/01.04.2019+SF+vs+DAL+RIALTO/"
     sorted_img_array = relabel_folder_contents(vod_path)
     print("================================================")
     print("Loading Images")
@@ -567,3 +567,4 @@ if __name__ == '__main__':
         print(key + ": " + str(len(all_predictions[key])))
     df = pd.DataFrame(data = all_predictions)
     df.to_csv(csv_folder + "STUPID+multitest.csv", sep=',')
+    """

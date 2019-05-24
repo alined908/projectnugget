@@ -9,11 +9,11 @@ Overwatch CV - Get stats from an Overwatch game recording
 
 ## 3. Example stats:
 ![examplestats](https://user-images.githubusercontent.com/47507106/57599467-9c5de500-750b-11e9-8130-c483474d84ea.PNG)
+![fightstats](https://user-images.githubusercontent.com/47507106/58194561-ba011c00-7c7a-11e9-8371-67e2fc923983.PNG)
 
 # TODO
 --------
 ## Major
-- Implement processing of multiple events in killfeed on same frame.
 - Set up database to store statistics
 
 ## Minor

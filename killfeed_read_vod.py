@@ -110,13 +110,13 @@ def killfeed_load_images_for_model(X_batch, resize_to_720P=True, train=False):
         for index, path in enumerate(X_batch):
             #print("Image is: ", path)
             img = cv2.imread(path)
-            kill_coord, death_coord, assist_coord = read_killfeed(img, train, 0, 38)
+            kill_coord, death_coord, assist_coord = read_killfeed(img, train, 0, 32)
             # Resize image
             x, xw, y, yh = kill_coord[0][0][0], kill_coord[0][0][1], kill_coord[0][1][0], kill_coord[0][1][1]
             #print("Assist coord", assist_coord)
             ax, axw, ay, ayh = assist_coord[0][0][0], assist_coord[0][0][1], assist_coord[0][1][0], assist_coord[0][1][1]
-            assist_img = img[107 + ay: 107 + ayh, 950+ax:950+axw]
-            img = img[107 + y:107 + yh, 950+x  :950+xw]
+            assist_img = img[109 + ay: 109 + ayh, 950+ax:950+axw]
+            img = img[109 + y:109 + yh, 950+x  :950+xw]
             # dividing by 255 leads to faster convergence through normalization.
             X_loaded_kills.append(np.array(img)/(255))
             X_loaded_assists.append(np.array(assist_img)/(255))
@@ -140,12 +140,12 @@ def killfeed_load_images_for_model(X_batch, resize_to_720P=True, train=False):
             for window in windows:
                 kill_coord, death_coord, assist_coord = read_killfeed(cv2.imread(path), False, window[0], window[1])
                 x, xw, y, yh = kill_coord[0][0][0], kill_coord[0][0][1], kill_coord[0][1][0], kill_coord[0][1][1]
-                img1 = img[107 + y:107 + yh, 950+x  :950+xw]
+                img1 = img[109 + y:109 + yh, 950+x  :950+xw]
                 frame_kills.append(np.array(img1)/(255))
                 frame_kill_colors.append(kill_coord[0][2])
 
                 x, xw, y, yh = death_coord[0][0][0], death_coord[0][0][1], death_coord[0][1][0], death_coord[0][1][1]
-                img2 = img[107 + y:107 + yh, 950+x  :950+xw]
+                img2 = img[109 + y:109 + yh, 950+x  :950+xw]
                 shape = (np.array(img2)/255).shape
                 if shape != (26,36,3):
                     print(path)
@@ -154,7 +154,7 @@ def killfeed_load_images_for_model(X_batch, resize_to_720P=True, train=False):
 
                 for assist in assist_coord:
                     x, xw, y, yh = assist[0][0], assist[0][1], assist[1][0], assist[1][1]
-                    img3 = img[107 + y:107 + yh, 950+x  :950+xw]
+                    img3 = img[109 + y:109 + yh, 950+x  :950+xw]
                     frame_assists.append(np.array(img3)/(255))
                 frame_assists_colors.append(assist_coord[0][2])
             X_loaded_kills.append(frame_kills)

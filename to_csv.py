@@ -500,7 +500,7 @@ def clean_predictions(map):
 Make the beautiful CSV that we said we would
 """
 if __name__ == '__main__':
-
+    
     csv_folder = "csvs/to_csv/"
     scrim_folder = "vod_data/"
     for folder in os.listdir(scrim_folder):
@@ -525,7 +525,9 @@ if __name__ == '__main__':
         vod_path = scrim_folder + folder + "/"
         print("================================================")
         print("Relabeling files")
+        print("Relabeling: ", folder)
         print("================================================")
+    vod_path = "vod_data/01.04.2019+SF+vs+DAL+RIALTO/"
     sorted_img_array = relabel_folder_contents(vod_path)
     print("================================================")
     print("Loading Images")
@@ -533,22 +535,27 @@ if __name__ == '__main__':
     temp = sorted_img_array
     images = sorted_img_array
 
-    kills_array, deaths_array, assists_array, kills_colors, deaths_colors, asssits_colors = killfeed_load_images_for_model(temp, resize_to_720P = True, train = False)
-
+    kills_array, deaths_array, assists_array, kills_colors, deaths_colors, assists_colors = killfeed_load_images_for_model(temp, resize_to_720P = True, train = False)
     print("================================================")
     print("Predicting Images")
     print("================================================")
     all_predictions = {'Images':[], 'Kills':[], 'Deaths': []}
 
-    kills_predict = killfeed_model.predict(np.asarray(kills_array))
-    deaths_predict = killfeed_model.predict(np.asarray(deaths_array))
+    for element in kills_array:
+        img_kills = []
+        kills_predict = killfeed_model.predict(np.asarray(element))
+        for index, image in enumerate(kills_predict):
+            img = image.tolist()
+            img_kills.append([inverse_killfeed[img.index(max(img))], max(img)])
+        all_predictions['Kills'].append(img_kills)
+    for element in deaths_array:
+        img_deaths = []
+        deaths_predict = killfeed_model.predict(np.asarray(element))
+        for index, image in enumerate(deaths_predict):
+            img = image.tolist()
+            img_deaths.append([inverse_killfeed[img.index(max(img))], max(img)])
+        all_predictions['Deaths'].append(img_deaths)
     all_predictions['Images'] = temp
-    for index, image in enumerate(kills_predict):
-        img = image.tolist()
-        all_predictions['Kills'].append([inverse_killfeed[img.index(max(img))], max(img)])
-    for index, image in enumerate(deaths_predict):
-        img = image.tolist()
-        all_predictions['Deaths'].append([inverse_killfeed[img.index(max(img))], max(img)])
     all_predictions['Kills_Colors'] = kills_colors
     all_predictions['Deaths_Colors'] = deaths_colors
 
@@ -556,7 +563,8 @@ if __name__ == '__main__':
     print("Filtering Predictions")
     print("================================================")
     #print(all_predictions)
-
+    for key in all_predictions.keys():
+        print(key + ": " + str(len(all_predictions[key])))
     df = pd.DataFrame(data = all_predictions)
-    df.to_csv(csv_folder + "STUPID.csv", sep=',')
+    df.to_csv(csv_folder + "STUPID+multitest.csv", sep=',')
     """

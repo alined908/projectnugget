@@ -79,6 +79,9 @@ def left_ult_charge_load_images_for_model(X_batch, resize_to_720P=True, train = 
 
         X_loaded_arr = [X1_loaded, X2_loaded, X3_loaded, X4_loaded, X5_loaded, X6_loaded]
         for path in X_batch:
+            num_loaded = len(X1_loaded)
+            if num_loaded % 100 == 0:
+                print("Left Ults: Processed " + str(num_loaded)+ " images already")
             img = cv2.imread(path)
             #Crop out player 1
             img_1 = img[49:74, 39:60]

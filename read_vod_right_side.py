@@ -107,6 +107,9 @@ def read_vod_load_right_for_model(X_batch, resize_to_720P=True, train = False):
         X_loaded_arr = [X7_loaded, X8_loaded, X9_loaded, X10_loaded, X11_loaded, X12_loaded]
 
         for path in X_batch:
+            num_loaded = len(X7_loaded)
+            if num_loaded % 100 == 0:
+                print("Right Heroes: Processed " + str(num_loaded)+ " images already")
             img = cv2.imread(path)
             #Crop out player 1
             img_7 = img[49:74, 860:890]

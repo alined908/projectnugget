@@ -129,6 +129,9 @@ def killfeed_load_images_for_model(X_batch, resize_to_720P=True, train=False):
         return X_loaded_kills, X_loaded_assists
     else:
         for path in X_batch:
+            num_loaded = len(X_loaded_kills)
+            if num_loaded % 100 == 0:
+                print("Killfeed: Processed " + str(num_loaded)+ " images already")
             img = cv2.imread(path)
             windows = get_windows(path)
             frame_kills = []
@@ -165,7 +168,7 @@ def killfeed_load_images_for_model(X_batch, resize_to_720P=True, train=False):
             assists_colors.append(frame_assists_colors)
 
         #cv2.imwrite('sample.jpg', X_loaded_kills[10][0] * 255)
-        return X_loaded_kills, X_loaded_deaths, X_loaded_assists, kill_colors, death_colors, assists_colors
+        return [X_loaded_kills, X_loaded_deaths, X_loaded_assists, kill_colors, death_colors, assists_colors]
 
 def train():
     #X, y = get_dataset(PATH_TO_DATA)

@@ -129,6 +129,9 @@ def killfeed_load_images_for_model(X_batch, resize_to_720P=True, train=False):
         return X_loaded_kills, X_loaded_assists
     else:
         for path in X_batch:
+            num_loaded = len(X_loaded_kills)
+            if num_loaded % 100 == 0:
+                print("Killfeed: Processed " + str(num_loaded)+ " images already")
             img = cv2.imread(path)
             windows = get_windows(path)
             frame_kills = []

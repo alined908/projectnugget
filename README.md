@@ -1,7 +1,7 @@
 # Project Nugget
 Overwatch CV - Get stats from an Overwatch game recording
 
-## 1. Example Frame:
+## 1. Example Frame (from VOD):
 ![45300](https://user-images.githubusercontent.com/47507106/57599121-88fe4a00-750a-11e9-9265-bb880f68e899.jpg)
 
 ## 2. Example CSV Output:
@@ -17,8 +17,14 @@ Overwatch CV - Get stats from an Overwatch game recording
 - Set up database to store statistics
 
 ## Minor
-- Eliminate rows that happen x seconds before new round.
+- Eliminate (or don't count) rows that happen x seconds before new round.
+- Add roundtype to statistics
+- Suicides
+
+## Stretch
 - Implement assists tracking
 
 ## Reminders
-- Manually input of roundtype
+- Input roundtype manually
+- Format of VOD name should be ex. 01.04.2019+SF+vs+DAL+RIALTO where date format is dd.mm.yyyy
+-

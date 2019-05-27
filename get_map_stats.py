@@ -2,6 +2,12 @@ import os
 import pandas as pd
 import ast
 
+map_dic = {'BUSAN': 'koth', 'ILIOS': 'koth', 'LJ': 'koth', 'NEPAL': 'koth', 'OASIS': 'koth',
+'NUMBANI': 'non-koth', 'KR': 'non-koth', 'BW': 'non-koth', 'KR': 'non-koth', 'HOLLYWOOD': 'non-koth', 'HOLLY': 'non-koth',
+'R66': 'non-koth', 'GIB': 'non-koth', 'RIALTO': 'non-koth', 'DORADO': 'non-koth', 'JUNKERTOWN': 'non-koth',
+'HANAMURA': 'non-koth', 'LUNAR': 'non-koth', 'PARIS': 'non-koth', 'VOLSKAYA': 'non-koth', 'ANUBIS': 'non-koth'}
+shock_roster = ["SUPER", "CHOIHYOBIN", "SINATRAA", "VIOL2T", "MOTH", "RASCAL", "ARCHITECT", "STRIKER", "SMURF", "NEVIX"]
+
 def get_map_info(csv_path):
     df = pd.read_csv(csv_path, sep = ",")
     date = df.loc[0]['Date']
@@ -87,20 +93,24 @@ def get_ttcu_ttuu(csv_path, team1, team2):
 
     return final_team1_ttcu, final_team2_ttcu, final_team1_ttuu, final_team2_ttuu
 
-def get_teamcomps(csv_path):
+def get_teamcomps(csv_path, map, team1, team2):
     df = pd.read_csv(csv_path, sep = ",")
     team1_comp, team2_comp = [], []
     team1_duration, team2_duration = [], []
     final_team1_comps, final_team2_comps = {}, {}
     prev_team1_time, prev_team2_time = 0, 0
-    first_flag = True
+    first_flag, shock_is_team1_flag = True, False
+
+    #Check which team is shock
+    for shock in shock_roster:
+        if shock in team1:
+            shock_is_team1_flag = True
+            break
 
     #Iterate over dataframe rows
     for count, (i, row) in enumerate(df.iterrows()):
-        curr_row_time = row['Duration']
-        curr_gamestate = row['GameState']
-        team1_hero_change = []
-        team2_hero_change = []
+        curr_row_time, curr_gamestate = row['Duration'], row['GameState']
+        team1_hero_change, team2_hero_change  = [], []
         skip_flag = False
 
         #Add comps,time  from last row
@@ -128,39 +138,64 @@ def get_teamcomps(csv_path):
         hero4, hero5, hero6 = df.loc[i-1]['Hero 4'], df.loc[i-1]['Hero 5'], df.loc[i-1]['Hero 6']
         hero7, hero8, hero9 = df.loc[i-1]['Hero 7'], df.loc[i-1]['Hero 8'], df.loc[i-1]['Hero 9']
         hero10, hero11, hero12 = df.loc[i-1]['Hero 10'], df.loc[i-1]['Hero 11'], df.loc[i-1]['Hero 12']
+        roundtype = df.loc[i-1]['Roundtype']
+
 
         #If no hero_swap go to next row, otherwise save last comp and time played
         if len(team1_hero_change) == 0 and len(team2_hero_change) == 0:
             continue
+
+        if map_dic[map] == 'koth':
+            team1_array = [roundtype, hero1, hero2, hero3, hero4, hero5, hero6]
+            team2_array = [roundtype, hero7, hero8, hero9, hero10, hero11, hero12]
+        else:
+            if roundtype == "ATTACK":
+                opponent_roundtype = "DEFENSE"
+            if roundtype == "DEFENSE":
+                opponent_roundtype = "ATTACK"
+            if shock_is_team1_flag:
+                team1_array = [roundtype, hero1, hero2, hero3, hero4, hero5, hero6]
+                team2_array = [opponent_roundtype, hero7, hero8, hero9, hero10, hero11, hero12]
+            else:
+                team1_array = [opponent_roundtype, hero1, hero2, hero3, hero4, hero5, hero6]
+                team2_array = [roundtype, hero7, hero8, hero9, hero10, hero11, hero12]
+
         if len(team1_hero_change) > 0:
-            team1_comp.append([hero1, hero2, hero3, hero4, hero5, hero6])
+            team1_comp.append(team1_array)
             team1_duration.append(curr_row_time - prev_team1_time)
             prev_team1_time = df.loc[i]['Duration']
         if len(team2_hero_change) > 0:
-            team2_comp.append([hero7, hero8, hero9, hero10, hero11, hero12])
+            team2_comp.append(team2_array)
             team2_duration.append(curr_row_time - prev_team2_time)
             prev_team2_time = df.loc[i]['Duration']
 
     #Create Final Set
     for num, comp in enumerate(team1_comp):
         time_played = team1_duration[num]
+        roundtype, short_comp = comp[0], comp[1:]
         if time_played < 5 or ('unknownhero' in comp):
             continue
         else:
-            if tuple(comp) in final_team1_comps:
-                final_team1_comps[tuple(comp)] += time_played
-            else:
-                final_team1_comps[tuple(comp)] = time_played
+            if roundtype not in final_team1_comps:
+                final_team1_comps[roundtype] = {}
 
-    for num2, comp2 in enumerate(team2_comp):
-        time_played = team2_duration[num2]
-        if time_played < 5 or ('unknownhero' in comp2):
+            if tuple(short_comp) in final_team1_comps[roundtype]:
+                final_team1_comps[roundtype][tuple(short_comp)] += time_played
+            else:
+                final_team1_comps[roundtype][tuple(short_comp)] = time_played
+
+    for num, comp in enumerate(team2_comp):
+        time_played = team2_duration[num]
+        roundtype, short_comp = comp[0], comp[1:]
+        if time_played < 5 or ('unknownhero' in comp):
             continue
         else:
-            if tuple(comp2) in final_team2_comps:
-                final_team2_comps[tuple(comp2)] += time_played
+            if roundtype not in final_team2_comps:
+                final_team2_comps[roundtype] = {}
+            if tuple(short_comp) in final_team2_comps[roundtype]:
+                final_team2_comps[roundtype][tuple(short_comp)] += time_played
             else:
-                final_team2_comps[tuple(comp2)] = time_played
+                final_team2_comps[roundtype][tuple(short_comp)] = time_played
 
     return final_team1_comps, final_team2_comps
 
@@ -206,7 +241,7 @@ def get_kill_deaths(csv_path, team1, team2):
 
 def append_fight_stats(general_fight_dict, kill_array, death_array, curr_row_time, timestamp, team1, team2, team1_hero_roster, team2_hero_roster,
 total_kill_sequence, team1_kill_sequence, team2_kill_sequence, total_death_sequence, team1_death_sequence, team2_death_sequence,
-total_ult_sequence, team1_ult_sequence, team2_ult_sequence):
+total_ult_sequence, team1_ult_sequence, team2_ult_sequence, map, roundtype):
 
     kill_name, kill_hero, death_name, death_hero = kill_array[0], kill_array[1], death_array[0], death_array[1]
 
@@ -228,6 +263,8 @@ total_ult_sequence, team1_ult_sequence, team2_ult_sequence):
         print("SAME # OF KILLS")
 
     #Fight general information
+    general_fight_dict['Map'].append(map)
+    general_fight_dict['Roundtype'].append(roundtype)
     general_fight_dict['Length'].append(curr_row_time - timestamp)
     general_fight_dict['Winner'].append(winners)
     general_fight_dict['L Players'].append(team1)
@@ -252,6 +289,7 @@ total_ult_sequence, team1_ult_sequence, team2_ult_sequence):
     #general_fight_dict['L # Ults Avail'].append()
     #general_fight_dict['R # Ults Avail'].append()
 
+    print("Map:", map, "--> Roundtype (SFS):", roundtype)
     print("Length of Fight: " + str(curr_row_time - timestamp), "====> First Blood: ", total_kill_sequence[0], "====> Winner: ", winners)
     print("Team 1 Hero Roster:", team1_hero_roster)
     print("Team 2 Hero Roster:", team2_hero_roster)
@@ -278,10 +316,10 @@ total_ult_sequence, team1_ult_sequence, team2_ult_sequence):
 #5. From #1 --> Fight Win % when X ults more/less used
 # NOTE: Be cautious of it currently counting the next row after fight ends (last kill) for ult. Differs from winston's lab implementation, but makes sense i think..Probably should add a time check
 # Note: Be cautious of how dva ult is tracked
-def get_fight_stats(csv_path, team1, team2):
+def get_fight_stats(csv_path, team1, team2, map):
     df = pd.read_csv(csv_path, sep = ",")
     fight_player_dict = {key: {'Fights': {'Win': 0, 'Lose': 0, 'Total': 0}, 'First Elim': 0, 'First Death' : 0} for key in (team1+team2)}
-    general_fight_dict = {"Length": [], 'Winner': [], 'L Players': [], 'R Players': [], 'L Heroes': [], 'R Heroes': [],
+    general_fight_dict = {'Map': [], 'Roundtype': [], 'Length': [], 'Winner': [], 'L Players': [], 'R Players': [], 'L Heroes': [], 'R Heroes': [],
     'Total Kill Sequence': [], 'L Kill Sequence': [], 'R Kill Sequence': [], 'L Kill #': [], 'R Kill #': [],
     'Total Death Sequence': [], 'L Death Sequence': [], 'R Death Sequence': [], 'First Blood': [],
     'L Ult Sequence': [], 'R Ult Sequence': [], 'L # Ults Used': [], 'R # Ults Used': []}
@@ -301,7 +339,7 @@ def get_fight_stats(csv_path, team1, team2):
                 continue
             else:
                 first_death_timestamp, length_tracker, countdown = row['Duration'], 0, 13
-                in_fight, first_ult_timestamp = True, float('inf')
+                in_fight, first_ult_timestamp, roundtype = True, float('inf'), row['Roundtype']
                 total_kill_sequence, total_death_sequence, total_ult_sequence = [], [], []
                 team1_kill_sequence, team1_death_sequence, team1_ult_sequence = [], [], []
                 team2_kill_sequence, team2_death_sequence, team2_ult_sequence = [], [], []
@@ -400,7 +438,7 @@ def get_fight_stats(csv_path, team1, team2):
 
                 #Append fight info to general fight dict
                 append_fight_stats(general_fight_dict, kill_array, death_array, curr_row_time, timestamp, team1, team2, team1_hero_roster, team2_hero_roster,
-                total_kill_sequence, team1_kill_sequence, team2_kill_sequence, total_death_sequence, team1_death_sequence, team2_death_sequence, total_ult_sequence, team1_ult_sequence, team2_ult_sequence)
+                total_kill_sequence, team1_kill_sequence, team2_kill_sequence, total_death_sequence, team1_death_sequence, team2_death_sequence, total_ult_sequence, team1_ult_sequence, team2_ult_sequence, map, roundtype)
 
     return general_fight_dict
 
@@ -408,12 +446,13 @@ if __name__ == '__main__':
     csv_folder = "csvs/to_csv/"
     for csv in os.listdir(csv_folder):
         csv_path = csv_folder + csv
+        print(csv_path)
         date, map, opponent, total_game_time = get_map_info(csv_path)
         team1, team2 = get_rosters(csv_path)
-        team1_comps, team2_comps = get_teamcomps(csv_path)
+        team1_comps, team2_comps = get_teamcomps(csv_path, map, team1, team2)
         team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu = get_ttcu_ttuu(csv_path, team1, team2)
         team1_kd, team2_kd = get_kill_deaths(csv_path, team1, team2)
-        general_fight_stats = get_fight_stats(csv_path, team1, team2)
+        general_fight_stats = get_fight_stats(csv_path, team1, team2, map)
         print("===============================================")
         print("Match Summary")
         print("===============================================")
@@ -450,7 +489,7 @@ if __name__ == '__main__':
         # print("Team 2 TTUU: ")
         # print(team2_ttuu)
         # print('------------------------------------------------------------------------------------------------')
-        print("===============================================")
-        print("Match Fight Statistics")
-        print("===============================================")
-        print(general_fight_stats)
+        # print("===============================================")
+        # print("Match Fight Statistics")
+        # print("===============================================")
+        # print(general_fight_stats)

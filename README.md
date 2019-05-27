@@ -24,9 +24,7 @@ Overwatch CV - Get stats from an Overwatch game recording
 
 ## Minor
 - Eliminate (or don't count) rows that happen x seconds before new round.
-- Add roundtype to statistics
 - Suicides
-- Refactor code
 
 ## Stretch
 - Implement assists tracking
@@ -34,4 +32,4 @@ Overwatch CV - Get stats from an Overwatch game recording
 ## Reminders
 - Format of VOD name should be ex. 01.04.2019+SF+vs+DAL+RIALTO where date format is dd.mm.yyyy
 - Clean ult charges (esp. d.va)
-- Input roundtype manually
+- Input roundtype manually (create column)

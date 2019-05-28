@@ -26,7 +26,7 @@ Overwatch CV - Get stats from an Overwatch game recording
 1. `python parse_vod.py` ---> Parses vods in `/vods` into images  
 1. Move folders with images generated in /data into `/vod_data` where format of folder should be ex. `01.04.2019+SF+vs+DAL+RIALTO`  where date format is `dd.mm.yyyy`
     * Delete map loading images (in between lobby and actual map)
-    * If map is koth, get image `unknownheroes_roundreset.png` and replace first image of new round (round 2 +)
+    * If map is koth, get image `roundreset.jpg` and replace first image of new round (round 2, 3)
 1. `python to_csv.py` ----> Runs models on match images to output csv
 1. Clean csv
     * Create a column after 'Opponent' called 'Roundtype' and input roundtype manually (Ex. Attack/Defense/Gardens/Shrine).  If you see a long chain (>6) of same duration, then roundswap happens at the second row of the ones that have the same duration (aka when "unknownhero" appears)

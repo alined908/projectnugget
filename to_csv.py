@@ -48,7 +48,7 @@ all_predictions = {'Image': [], 'GameState':[], 'Paused':[], 'Kills': [], 'Kills
 'Hero 10': [], 'Ult_Charge 10' :[], 'Hero 11': [], 'Ult_Charge 11' :[], 'Hero 12': [], 'Ult_Charge 12' :[]}
 
 #Stores the previously logged change/row that was put into the CSV
-previous_prediction = {'Duration': 0, 'GameState':'', 'Paused':'live', 'Kills': [['', '']], 'Deaths': [['', '']],
+previous_prediction = {'Duration': 0, 'GameState':'', 'Paused':'live', 'Kills': [['', ''], ['', '']], 'Deaths': [['', ''], ['', '']],
 'Name 1': '', 'Hero 1': ['unknownhero', -1], 'Ult_Charge 1' :['', -1], 'Name 2': '', 'Hero 2': ['unknownhero', -1], 'Ult_Charge 2' :['', -1],
 'Name 3': '', 'Hero 3': ['unknownhero', -1], 'Ult_Charge 3' :['', -1], 'Name 4': '', 'Hero 4': ['unknownhero', -1], 'Ult_Charge 4' :['', -1],
 'Name 5': '', 'Hero 5': ['unknownhero', -1], 'Ult_Charge 5' :['', -1], 'Name 6': '', 'Hero 6': ['unknownhero', -1], 'Ult_Charge 6' :['', -1],
@@ -135,12 +135,11 @@ def predict(sorted_img_array):
         async_results.append(result)
 
     left_hero_array, right_hero_array, left_ult_array, right_ult_array, gamestate_array, paused_array, killfeed_array = async_results[0].get(), async_results[1].get(), async_results[2].get(), async_results[3].get(), async_results[4].get(), async_results[5].get(), async_results[6].get()
-
-    #kd = pool.apply_async(, (temp, True, False, ))
     kills_array, deaths_array, assists_array, kills_colors, deaths_colors, assists_colors = killfeed_array
     finish = time.time()
-    #print("Process took:", finish-start, "seconds")
+    print("Process took:", finish-start, "seconds")
 
+    start = time.time()
     for index, hero in enumerate(left_hero_array):
         left_hero_array[index] = np.asarray(hero)
         left_hero_array[index] = left_hero_model.predict(left_hero_array[index])
@@ -149,6 +148,8 @@ def predict(sorted_img_array):
             image = image.tolist()
             #SLot in hero prediction and accuracy
             all_predictions['Hero ' + str(index + 1)].append([inverse_hero[image.index(max(image))], max(image)])
+    finish = time.time()
+    print("Process took:", finish-start, "seconds")
 
     for index, hero in enumerate(right_hero_array):
         right_hero_array[index] = np.asarray(hero)
@@ -159,7 +160,7 @@ def predict(sorted_img_array):
             #SLot in hero prediction and accuracy
             all_predictions['Hero ' + str(index + 7)].append([inverse_hero[image.index(max(image))], max(image)])
 
-
+    start = time.time()
     for index, ult in enumerate(left_ult_array):
         left_ult_array[index] = np.asarray(ult)
         left_ult_array[index] = left_ult_model.predict(left_ult_array[index])
@@ -167,6 +168,8 @@ def predict(sorted_img_array):
             #SLot in ult prediction and accuracy
             image = image.tolist()
             all_predictions['Ult_Charge ' + str(index + 1)].append([inverse_ult[image.index(max(image))], max(image)])
+    finish = time.time()
+    print("Process took:", finish-start, "seconds")
 
 
     for index, ult in enumerate(right_ult_array):
@@ -183,12 +186,15 @@ def predict(sorted_img_array):
         img = image.tolist()
         all_predictions['GameState'].append([inverse_gamestate[img.index(max(img))], max(img)])
 
-
+    start = time.time()
     paused_predict = pause_model.predict(np.asarray(paused_array))
     for index, image in enumerate(paused_predict):
         img = image.tolist()
         all_predictions['Paused'].append([inverse_pause[img.index(max(img))], max(img)])
+    finish = time.time()
+    print("Process took:", finish-start, "seconds")
 
+    start = time.time()
     for element in kills_array:
         img_kills = []
         kills_predict = killfeed_model.predict(np.asarray(element))
@@ -196,6 +202,8 @@ def predict(sorted_img_array):
             img = image.tolist()
             img_kills.append([inverse_killfeed[img.index(max(img))], max(img)])
         all_predictions['Kills'].append(img_kills)
+    finish = time.time()
+    print("Process took:", finish-start, "seconds")
     for element in deaths_array:
         img_deaths = []
         deaths_predict = killfeed_model.predict(np.asarray(element))
@@ -284,7 +292,7 @@ def clean_predictions(map):
     roundstart, roundcounter = 0, 0
     HERO_THRESHOLD, ULT_THRESHOLD = 0.95, 0.90
     LOBBY_THRESHOLD, PAUSE_THRESHOLD = 0.90, 0.90
-    KD_THRESHOLD, DURATION_THRESHOLD  = 0.985, 9
+    KD_THRESHOLD, DURATION_THRESHOLD  = 0.98, 9
 
     #Frames different between load in and actual round start
     map_type = map_dic[map]
@@ -426,32 +434,41 @@ def clean_predictions(map):
         if len(all_predictions['Kills'][i]) != len(all_predictions['Deaths'][i]):
             print("Differing # of kills and deaths events")
 
-        temp_prev_kill, temp_prev_death = 'unchanged', 'unchanged'
+        temp_prev_kill, temp_prev_prev_kill, temp_prev_death, temp_prev_prev_death = 'unchanged', 'unchanged', 'unchanged', 'unchanged'
         loop_counter = 0
         for index, event in enumerate(all_predictions['Kills'][i]):
             curr_kill, curr_kill_acc, curr_kill_color = event[0], event[1], all_predictions['Kills_Colors'][i][index]
             curr_death, curr_death_acc, curr_death_color = all_predictions['Deaths'][i][index][0], all_predictions['Deaths'][i][index][1], all_predictions['Deaths_Colors'][i][index]
             prev_kill, prev_kill_color, prev_death, prev_death_color = previous_prediction['Kills'][0][0], previous_prediction['Kills'][0][1], previous_prediction['Deaths'][0][0], previous_prediction['Deaths'][0][1]
+            prev_prev_kill, prev_prev_kill_color, prev_prev_death, prev_prev_death_color = previous_prediction['Kills'][1][0], previous_prediction['Kills'][1][1], previous_prediction['Deaths'][1][0], previous_prediction['Deaths'][1][1]
             good_flag = False
 
+            #Conditions to check a killfeed event
             if (curr_kill_acc > KD_THRESHOLD) and (curr_death_acc > KD_THRESHOLD) and (curr_kill_color != 'no kill') and (curr_death_color != 'no kill'):
-                if (curr_kill != prev_kill) and (curr_death != prev_death):
-                    good_flag = True
-                else:
+                if (curr_kill == prev_kill) and (curr_death == prev_death) and (curr_kill_color == prev_kill_color) and (curr_death_color == prev_death_color):
                     if image_difference_check(dict['Image'][-1], all_predictions['Image'][i]):
                         good_flag = True
                     else:
                         break
+                elif (curr_kill == prev_prev_kill) and (curr_death == prev_prev_death) and (curr_kill_color == prev_prev_kill_color) and (curr_death_color == prev_prev_death_color):
+                    if image_difference_check(dict['Image'][-1], all_predictions['Image'][i]):
+                        good_flag = True
+                    else:
+                        break
+                else:
+                    good_flag = True
 
+            #If row met above checks
             if good_flag:
                 kill_player, death_player = get_name_from_color(curr_kill_color, curr_death_color, curr_kill, curr_death)
                 if kill_player != 'Not Right' and death_player != 'Not Right':
-                    loop_counter += 1
                     dict['Kills'].append([kill_player, curr_kill])
                     dict['Deaths'].append([death_player, curr_death])
-                    if loop_counter == 1:
-                        temp_prev_kill, temp_prev_kill_color = dict['Kills'][-1][1], curr_kill_color
-                        temp_prev_death, temp_prev_death_color = dict['Deaths'][-1][1], curr_death_color
+                    if loop_counter == 0:
+                        previous_prediction['Kills'][1][0], previous_prediction['Kills'][1][1] = prev_kill, prev_kill_color
+                        previous_prediction['Deaths'][1][0], previous_prediction['Deaths'][1][1] = prev_death, prev_death_color
+                        previous_prediction['Kills'][0][0], previous_prediction['Kills'][0][1] = curr_kill, curr_kill_color
+                        previous_prediction['Deaths'][0][0], previous_prediction['Deaths'][0][1] = curr_death, curr_death_color
                     if len(dict['Image']) < len(dict['Kills']):
                         dict['Image'].append(all_predictions['Image'][i])
                     update_image = True
@@ -469,10 +486,8 @@ def clean_predictions(map):
                         if len(dict['Ult_Accuracy ' + str(hero_num)]) < len(dict['Image']):
                             dict['Ult_Accuracy ' + str(hero_num)].append(previous_prediction['Ult_Charge ' + str(hero_num)][1])
                         dict['Name ' + str(hero_num)].append(previous_prediction['Name ' + str(hero_num)])
+                    loop_counter += 1
 
-        if temp_prev_kill != 'unchanged' and temp_prev_kill != 'unchanged':
-            previous_prediction['Kills'][0][0], previous_prediction['Kills'][0][1] = temp_prev_kill, temp_prev_kill_color
-            previous_prediction['Deaths'][0][0], previous_prediction['Deaths'][0][1] = temp_prev_death, temp_prev_death_color
         #No kill/death but hero swap or ult charge
         if len(dict['Kills']) < len(dict['Hero 1']):
             dict['Kills'].append(['', ''])
@@ -560,7 +575,7 @@ if __name__ == '__main__':
         df.insert(1, 'Map', map)
         df.insert(2, 'Opponent', opponent)
         df.insert(1, 'Date', date)
-        df.to_csv(csv_folder + folder + "+kdtest3.csv", sep=',')
+        df.to_csv(csv_folder + folder + "+kdtest5.csv", sep=',')
         print("Successfully created csv!")
     """
     csv_folder = "csvs/"

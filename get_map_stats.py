@@ -442,6 +442,10 @@ def get_fight_stats(csv_path, team1, team2, map):
 
     return general_fight_dict
 
+def create_csvs(date, map, opponent, total_game_time, team1, team2, team1_comps, team2_comps, team1_ttcu, team2_ttcu, team1_kd, team2_kd, general_fight_stats):
+        
+
+
 if __name__ == '__main__':
     csv_folder = "csvs/to_csv/"
     for csv in os.listdir(csv_folder):
@@ -453,6 +457,7 @@ if __name__ == '__main__':
         team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu = get_ttcu_ttuu(csv_path, team1, team2)
         team1_kd, team2_kd = get_kill_deaths(csv_path, team1, team2)
         general_fight_stats = get_fight_stats(csv_path, team1, team2, map)
+        create_csvs(date, map, opponent, total_game_time, team1, team2, team1_comps, team2_comps, team1_ttcu, team2_ttcu, team1_kd, team2_kd, general_fight_stats)
         print("===============================================")
         print("Match Summary")
         print("===============================================")
@@ -489,7 +494,7 @@ if __name__ == '__main__':
         # print("Team 2 TTUU: ")
         # print(team2_ttuu)
         # print('------------------------------------------------------------------------------------------------')
-        # print("===============================================")
-        # print("Match Fight Statistics")
-        # print("===============================================")
-        # print(general_fight_stats)
+        print("===============================================")
+        print("Match Fight Statistics")
+        print("===============================================")
+        print(general_fight_stats)

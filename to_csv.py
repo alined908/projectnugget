@@ -39,32 +39,6 @@ inverse_gamestate = {v: k for k, v in gamestate_dic.items()}
 inverse_pause = {v: k for k, v in paused_state_dic.items()}
 inverse_killfeed = {v: k for k, v in killfeed_dic.items()}
 
-#Prediction Dictionaries
-#What do we predict for each image based off of our models
-all_predictions = {'Image': [], 'GameState':[], 'Paused':[], 'Kills': [], 'Kills_Colors': [], 'Deaths': [], 'Deaths_Colors': [],
-'Hero 1': [], 'Ult_Charge 1' :[], 'Hero 2': [], 'Ult_Charge 2' :[], 'Hero 3': [], 'Ult_Charge 3' :[],
-'Hero 4': [], 'Ult_Charge 4' :[], 'Hero 5': [], 'Ult_Charge 5' :[], 'Hero 6': [], 'Ult_Charge 6' :[],
-'Hero 7': [], 'Ult_Charge 7' :[], 'Hero 8': [], 'Ult_Charge 8' :[], 'Hero 9': [], 'Ult_Charge 9' :[],
-'Hero 10': [], 'Ult_Charge 10' :[], 'Hero 11': [], 'Ult_Charge 11' :[], 'Hero 12': [], 'Ult_Charge 12' :[]}
-
-#Stores the previously logged change/row that was put into the CSV
-previous_prediction = {'Duration': 0, 'GameState':'', 'Paused':'live', 'Kills': [['', ''], ['', '']], 'Deaths': [['', ''], ['', '']],
-'Name 1': '', 'Hero 1': ['unknownhero', -1], 'Ult_Charge 1' :['', -1], 'Name 2': '', 'Hero 2': ['unknownhero', -1], 'Ult_Charge 2' :['', -1],
-'Name 3': '', 'Hero 3': ['unknownhero', -1], 'Ult_Charge 3' :['', -1], 'Name 4': '', 'Hero 4': ['unknownhero', -1], 'Ult_Charge 4' :['', -1],
-'Name 5': '', 'Hero 5': ['unknownhero', -1], 'Ult_Charge 5' :['', -1], 'Name 6': '', 'Hero 6': ['unknownhero', -1], 'Ult_Charge 6' :['', -1],
-'Name 7': '', 'Hero 7': ['unknownhero', -1], 'Ult_Charge 7' :['', -1], 'Name 8': '', 'Hero 8': ['unknownhero', -1], 'Ult_Charge 8' :['', -1],
-'Name 9': '', 'Hero 9': ['unknownhero', -1], 'Ult_Charge 9' :['', -1], 'Name 10': '', 'Hero 10': ['unknownhero', -1], 'Ult_Charge 10' :['', -1],
-'Name 11': '', 'Hero 11': ['unknownhero', -1], 'Ult_Charge 11' :['', -1], 'Name 12': '', 'Hero 12': ['unknownhero', -1], 'Ult_Charge 12' :['', -1]}
-
-#Holds each row of what is going into the CSV
-dict = {'Image': [], 'Duration':[], 'GameState':[], 'Paused':[], 'Kills': [], 'Deaths': [],
-'Name 1': [], 'Hero 1': [], 'Accuracy 1':[], 'Ult_Charge 1': [], 'Ult_Accuracy 1': [], 'Name 2': [], 'Hero 2': [], 'Accuracy 2':[], 'Ult_Charge 2': [], 'Ult_Accuracy 2': [],
-'Name 3': [], 'Hero 3': [], 'Accuracy 3':[], 'Ult_Charge 3': [], 'Ult_Accuracy 3': [], 'Name 4': [], 'Hero 4': [], 'Accuracy 4':[], 'Ult_Charge 4': [], 'Ult_Accuracy 4': [],
-'Name 5': [], 'Hero 5': [], 'Accuracy 5':[], 'Ult_Charge 5': [], 'Ult_Accuracy 5': [], 'Name 6': [], 'Hero 6': [], 'Accuracy 6':[], 'Ult_Charge 6': [],  'Ult_Accuracy 6': [],
-'Name 7': [], 'Hero 7': [], 'Accuracy 7':[], 'Ult_Charge 7': [], 'Ult_Accuracy 7': [], 'Name 8': [], 'Hero 8': [], 'Accuracy 8':[], 'Ult_Charge 8': [], 'Ult_Accuracy 8': [],
-'Name 9': [], 'Hero 9': [], 'Accuracy 9':[], 'Ult_Charge 9': [], 'Ult_Accuracy 9': [], 'Name 10': [], 'Hero 10': [], 'Accuracy 10':[], 'Ult_Charge 10': [], 'Ult_Accuracy 10': [],
-'Name 11': [], 'Hero 11': [], 'Accuracy 11':[], 'Ult_Charge 11': [], 'Ult_Accuracy 11': [], 'Name 12': [], 'Hero 12': [], 'Accuracy 12':[], 'Ult_Charge 12': [], 'Ult_Accuracy 12': []}
-
 #load models
 right_hero_model = load_model('right_hero_model.h5')
 left_hero_model = load_model('left_hero_model.h5')
@@ -82,9 +56,9 @@ def hit_or_miss(data_path, sorted_img_array):
     old_date = scrim_name.split("+")[0]
     new_date = old_date.split(".")[1] + "/" + old_date.split(".")[0] + "/" + old_date.split(".")[2]
     #Predict variable with models, builds out all predictions for each image
-    predict(sorted_img_array)
+    all_predictions = predict(sorted_img_array)
     #Clean and create all_predictions to insert the needed items in the actual dict
-    clean_predictions(map)
+    clean_predictions(map, all_predictions)
     return new_date, map, opponent
     #print(dict)
 """
@@ -120,8 +94,13 @@ def relabel_folder_contents(vod_path):
 Based on the models that we have imported create the all_predictions dictionary
 """
 def predict(sorted_img_array):
-    temp = sorted_img_array
-    images = sorted_img_array
+    #all_predictions - What do we predict for each image based off of our models
+    all_predictions = {'Image': [], 'GameState':[], 'Paused':[], 'Kills': [], 'Kills_Colors': [], 'Deaths': [], 'Deaths_Colors': [],
+    'Hero 1': [], 'Ult_Charge 1' :[], 'Hero 2': [], 'Ult_Charge 2' :[], 'Hero 3': [], 'Ult_Charge 3' :[],
+    'Hero 4': [], 'Ult_Charge 4' :[], 'Hero 5': [], 'Ult_Charge 5' :[], 'Hero 6': [], 'Ult_Charge 6' :[],
+    'Hero 7': [], 'Ult_Charge 7' :[], 'Hero 8': [], 'Ult_Charge 8' :[], 'Hero 9': [], 'Ult_Charge 9' :[],
+    'Hero 10': [], 'Ult_Charge 10' :[], 'Hero 11': [], 'Ult_Charge 11' :[], 'Hero 12': [], 'Ult_Charge 12' :[]}
+    temp, images = sorted_img_array, sorted_img_array
     all_predictions['Image'] = temp
 
     # Multiprocessing to reduce overall time
@@ -214,6 +193,8 @@ def predict(sorted_img_array):
     all_predictions['Kills_Colors'] = kills_colors
     all_predictions['Deaths_Colors'] = deaths_colors
 
+    return all_predictions
+
 #check for duration difference
 def image_difference_check(previmage, currimage):
     prev_num = int(previmage.split("/")[2].split(".")[0])
@@ -237,7 +218,7 @@ def get_start_frames(map_type, roundcounter, frames_to_start):
 
     return start_frames
 
-def get_name_from_color(kill_color, death_color, kill_hero, death_hero):
+def get_name_from_color(previous_prediction, kill_color, death_color, kill_hero, death_hero):
     kill_index, death_index = -1, -1
     killer, death = "", ""
 
@@ -271,23 +252,49 @@ def get_name_from_color(kill_color, death_color, kill_hero, death_hero):
     death = previous_prediction['Name ' + str(death_index)]
     return killer, death
 
-def append_previous():
+def append_previous(dict, previous_prediction):
     for hero_num in range(1,13):
         dict['Hero ' + str(hero_num)].append(previous_prediction['Hero ' + str(hero_num)][0])
         dict['Accuracy ' + str(hero_num)].append(previous_prediction['Hero ' + str(hero_num)][1])
         dict['Ult_Charge ' + str(hero_num)].append(previous_prediction['Ult_Charge ' + str(hero_num)][0])
         dict['Ult_Accuracy ' + str(hero_num)].append(previous_prediction['Ult_Charge ' + str(hero_num)][1])
 
-def get_row_of_names(img_path):
+def get_row_of_names(img_path, dict, previous_prediction):
     left_name_str, right_name_str = row_name_recognition(img_path)
     left_names = left_name_str.split(" ")
     right_names = right_name_str.split(" ")
     names = left_names + right_names
+    if len(names) != 12:
+        names = ['Name1', 'Name2', 'Name3', 'Name4', 'Name5', 'Name6', 'Name7', 'Name8', 'Name9','Name10','Name11','Name12']
+
     for hero_num in range(1, 13):
         dict['Name ' + str(hero_num)].append(names[hero_num - 1])
         previous_prediction['Name ' + str(hero_num)] = names[hero_num - 1]
 
-def clean_predictions(map):
+#Prediction Dictionaries
+def create_dictionaries():
+    #previous_prediction - Stores the previously logged change/row that was put into the csv
+    #dict - holds each row of what is going into csv
+    previous_prediction = {'Duration': 0, 'GameState':'', 'Paused':'live', 'Kills': [['', ''], ['', '']], 'Deaths': [['', ''], ['', '']],
+    'Name 1': '', 'Hero 1': ['unknownhero', -1], 'Ult_Charge 1' :['', -1], 'Name 2': '', 'Hero 2': ['unknownhero', -1], 'Ult_Charge 2' :['', -1],
+    'Name 3': '', 'Hero 3': ['unknownhero', -1], 'Ult_Charge 3' :['', -1], 'Name 4': '', 'Hero 4': ['unknownhero', -1], 'Ult_Charge 4' :['', -1],
+    'Name 5': '', 'Hero 5': ['unknownhero', -1], 'Ult_Charge 5' :['', -1], 'Name 6': '', 'Hero 6': ['unknownhero', -1], 'Ult_Charge 6' :['', -1],
+    'Name 7': '', 'Hero 7': ['unknownhero', -1], 'Ult_Charge 7' :['', -1], 'Name 8': '', 'Hero 8': ['unknownhero', -1], 'Ult_Charge 8' :['', -1],
+    'Name 9': '', 'Hero 9': ['unknownhero', -1], 'Ult_Charge 9' :['', -1], 'Name 10': '', 'Hero 10': ['unknownhero', -1], 'Ult_Charge 10' :['', -1],
+    'Name 11': '', 'Hero 11': ['unknownhero', -1], 'Ult_Charge 11' :['', -1], 'Name 12': '', 'Hero 12': ['unknownhero', -1], 'Ult_Charge 12' :['', -1]}
+
+    dict = {'Image': [], 'Duration':[], 'GameState':[], 'Paused':[], 'Kills': [], 'Deaths': [],
+    'Name 1': [], 'Hero 1': [], 'Accuracy 1':[], 'Ult_Charge 1': [], 'Ult_Accuracy 1': [], 'Name 2': [], 'Hero 2': [], 'Accuracy 2':[], 'Ult_Charge 2': [], 'Ult_Accuracy 2': [],
+    'Name 3': [], 'Hero 3': [], 'Accuracy 3':[], 'Ult_Charge 3': [], 'Ult_Accuracy 3': [], 'Name 4': [], 'Hero 4': [], 'Accuracy 4':[], 'Ult_Charge 4': [], 'Ult_Accuracy 4': [],
+    'Name 5': [], 'Hero 5': [], 'Accuracy 5':[], 'Ult_Charge 5': [], 'Ult_Accuracy 5': [], 'Name 6': [], 'Hero 6': [], 'Accuracy 6':[], 'Ult_Charge 6': [],  'Ult_Accuracy 6': [],
+    'Name 7': [], 'Hero 7': [], 'Accuracy 7':[], 'Ult_Charge 7': [], 'Ult_Accuracy 7': [], 'Name 8': [], 'Hero 8': [], 'Accuracy 8':[], 'Ult_Charge 8': [], 'Ult_Accuracy 8': [],
+    'Name 9': [], 'Hero 9': [], 'Accuracy 9':[], 'Ult_Charge 9': [], 'Ult_Accuracy 9': [], 'Name 10': [], 'Hero 10': [], 'Accuracy 10':[], 'Ult_Charge 10': [], 'Ult_Accuracy 10': [],
+    'Name 11': [], 'Hero 11': [], 'Accuracy 11':[], 'Ult_Charge 11': [], 'Ult_Accuracy 11': [], 'Name 12': [], 'Hero 12': [], 'Accuracy 12':[], 'Ult_Charge 12': [], 'Ult_Accuracy 12': []}
+
+    return previous_prediction, dict
+
+def clean_predictions(map, all_predictions):
+    previous_prediction, dict = create_dictionaries()
     pause_flag, roundflag, initflag, nameflag = False, True, True, False
     roundstart, roundcounter = 0, 0
     HERO_THRESHOLD, ULT_THRESHOLD = 0.95, 0.90
@@ -297,12 +304,13 @@ def clean_predictions(map):
     #Frames different between load in and actual round start
     map_type = map_dic[map]
     if map_type == 'koth':
-        frames_to_start = [4335, 1830]
+        frames_to_start = [4200, 1830]
     else:
         frames_to_start = [5100, 4230]
 
     #For each image, go through and see if an important change happens. If yes, update image.
     for i in range(len(all_predictions['Image'])):
+        print(all_predictions['Image'][i])
         if (i % 100) == 0: print("On Image: ", i)
         pause_flag = False
         update_image = False
@@ -351,7 +359,7 @@ def clean_predictions(map):
             pause_flag = True
 
         if pause_flag:
-            append_previous()
+            append_previous(dict, previous_prediction)
         else:
             #Predict for each hero and ult charge what they will be
             for hero_num in range(1,13):
@@ -428,13 +436,12 @@ def clean_predictions(map):
                 dict['GameState'].append(all_predictions['GameState'][i-1][0])
                 dict['Image'].append(all_predictions['Image'][i-1])
                 dict['Paused'].append('live')
-                append_previous()
+                append_previous(dict, previous_prediction)
 
         #Killfeed Stuff
         if len(all_predictions['Kills'][i]) != len(all_predictions['Deaths'][i]):
             print("Differing # of kills and deaths events")
 
-        temp_prev_kill, temp_prev_prev_kill, temp_prev_death, temp_prev_prev_death = 'unchanged', 'unchanged', 'unchanged', 'unchanged'
         loop_counter = 0
         for index, event in enumerate(all_predictions['Kills'][i]):
             curr_kill, curr_kill_acc, curr_kill_color = event[0], event[1], all_predictions['Kills_Colors'][i][index]
@@ -460,7 +467,7 @@ def clean_predictions(map):
 
             #If row met above checks
             if good_flag:
-                kill_player, death_player = get_name_from_color(curr_kill_color, curr_death_color, curr_kill, curr_death)
+                kill_player, death_player = get_name_from_color(previous_prediction, curr_kill_color, curr_death_color, curr_kill, curr_death)
                 if kill_player != 'Not Right' and death_player != 'Not Right':
                     dict['Kills'].append([kill_player, curr_kill])
                     dict['Deaths'].append([death_player, curr_death])
@@ -516,7 +523,7 @@ def clean_predictions(map):
                         dict['Duration'].append(previous_prediction['Duration'])
                         if (roundcounter == 0 and initflag) or ((i+1)*15) >= (roundstart + start_frames):
                             if not nameflag:
-                                get_row_of_names(all_predictions['Image'][i])
+                                get_row_of_names(all_predictions['Image'][i], dict, previous_prediction)
                                 nameflag = True
                             roundstart = currImage
                             initflag = False
@@ -575,7 +582,7 @@ if __name__ == '__main__':
         df.insert(1, 'Map', map)
         df.insert(2, 'Opponent', opponent)
         df.insert(1, 'Date', date)
-        df.to_csv(csv_folder + folder + "+kdtest5.csv", sep=',')
+        df.to_csv(csv_folder + folder + ".csv", sep=',')
         print("Successfully created csv!")
     """
     csv_folder = "csvs/"

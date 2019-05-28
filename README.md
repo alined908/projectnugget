@@ -22,7 +22,7 @@ $ cd projectnugget
 * **Other**
   * Create these empty folders in `Project Nugget/` --> `/vods`, `/vod_data`, `/data`
 
-### Instructions
+## Instructions
 1. Place .mp4 scrim recordings in `/vods`
 1. `python parse_vod.py` ---> Parses vods in `/vods` into images  
 1. Move folders with images generated in `/data` into `/vod_data` where format of folder should be ex. `01.04.2019+SF+vs+DAL+RIALTO`  where date format is `dd.mm.yyyy`
@@ -35,11 +35,11 @@ $ cd projectnugget
     * Glance over csv and make sure rows make sense
 1. `python get_map_stats.py` -- > Outputs match statistics
 
-### Example Outputs
+## Example Outputs
 * [**CSV Output**](csv/to_csv/01.04.2019+SF+vs+DAL+RIALTO.csv)
 * [**Match Summary**](misc/matchsummary.PNG) **|** [**Fight Statistics**](misc/fightstats.PNG)
 
-### Todo
+## Todo
 * **Major**
   * Set up database to store statistics
 * **Minor**

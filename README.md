@@ -12,7 +12,7 @@ $ cd projectnugget
 * **Dependencies**
   * Python 3.6 +
 
-* [**OBS Settings**](misc/obssettings.png)
+* [**OBS Settings**](misc/obssettings.PNG)
 
 * **Overwatch Settings**
   * Colorblind Options: Enemy UI: Blue, Friendly: Yellow
@@ -37,7 +37,7 @@ $ cd projectnugget
 
 ### Example Outputs
 * [**CSV Output**](csv/to_csv/01.04.2019+SF+vs+DAL+RIALTO.csv)
-* [**Match Summary**](misc/matchsummary.png) **|** [**Fight Statistics**](misc/fightstats.png)
+* [**Match Summary**](misc/matchsummary.PNG) **|** [**Fight Statistics**](misc/fightstats.PNG)
 
 ### Todo
 * **Major**

@@ -11,14 +11,11 @@ $ cd projectnugget
 ### Prerequisites
 * **Dependencies**
   * Python 3.6 +
-
 * [**OBS Settings**](misc/obssettings.PNG)
-
 * **Overwatch Settings**
   * Colorblind Options: Enemy UI: Blue, Friendly: Yellow
   * Lobby needs to be reset one time after entering a new map (Blizzard's colorblind bug)
   * Resolution: 1920 x 1080
-
 * **Other**
   * Create these empty folders in `Project Nugget/` --> `/vods`, `/vod_data`, `/data`
 
@@ -36,7 +33,7 @@ $ cd projectnugget
 1. `python get_map_stats.py` -- > Outputs match statistics
 
 ## Example Outputs
-* [**CSV Output**](csv/to_csv/01.04.2019+SF+vs+DAL+RIALTO.csv)
+* [**CSV Output**](csvs/to_csv/01.04.2019%2BSF%2Bvs%2BDAL%2BRIALTO.csv)
 * [**Match Summary**](misc/matchsummary.PNG) **|** [**Fight Statistics**](misc/fightstats.PNG)
 
 ## Todo

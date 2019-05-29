@@ -181,7 +181,7 @@ def predict(sorted_img_array):
         all_predictions['Kills'].append(img_kills)
     finish = time.time()
     print("Process took:", finish-start, "seconds")
-    
+
     for element in deaths_array:
         img_deaths = []
         deaths_predict = killfeed_model.predict(np.asarray(element))
@@ -217,7 +217,7 @@ def get_start_frames(map_type, roundcounter, frames_to_start):
 
     return start_frames
 
-def get_name_from_color(previous_prediction, kill_color, death_color, kill_hero, death_hero):
+def get_name_from_color(previous_prediction, dict, kill_color, death_color, kill_hero, death_hero):
     kill_index, death_index = -1, -1
     killer, death = "", ""
 
@@ -464,7 +464,7 @@ def clean_predictions(map, all_predictions):
 
             #If row met above checks
             if good_flag:
-                kill_player, death_player = get_name_from_color(previous_prediction, curr_kill_color, curr_death_color, curr_kill, curr_death)
+                kill_player, death_player = get_name_from_color(previous_prediction, dict, curr_kill_color, curr_death_color, curr_kill, curr_death)
                 if kill_player != 'Not Right' and death_player != 'Not Right':
                     dict['Kills'].append([kill_player, curr_kill])
                     dict['Deaths'].append([death_player, curr_death])

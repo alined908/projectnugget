@@ -58,9 +58,9 @@ def hit_or_miss(data_path, sorted_img_array):
     #Predict variable with models, builds out all predictions for each image
     all_predictions = predict(sorted_img_array)
     #Clean and create all_predictions to insert the needed items in the actual dict
-    clean_predictions(map, all_predictions)
-    return new_date, map, opponent
-    #print(dict)
+    dict = clean_predictions(map, all_predictions)
+    return dict, new_date, map, opponent
+
 """
 Check if we need to relabel the contents of the folder
 All images need to be in order in multiples of 15
@@ -150,7 +150,6 @@ def predict(sorted_img_array):
     finish = time.time()
     print("Process took:", finish-start, "seconds")
 
-
     for index, ult in enumerate(right_ult_array):
         right_ult_array[index] = np.asarray(ult)
         right_ult_array[index] = right_ult_model.predict(right_ult_array[index])
@@ -158,7 +157,6 @@ def predict(sorted_img_array):
             #SLot in ult prediction and accuracy
             image = image.tolist()
             all_predictions['Ult_Charge ' + str(index + 7)].append([inverse_ult[image.index(max(image))], max(image)])
-
 
     gamestate_predict = gamestate_model.predict(np.asarray(gamestate_array))
     for index, image in enumerate(gamestate_predict):
@@ -183,6 +181,7 @@ def predict(sorted_img_array):
         all_predictions['Kills'].append(img_kills)
     finish = time.time()
     print("Process took:", finish-start, "seconds")
+    
     for element in deaths_array:
         img_deaths = []
         deaths_predict = killfeed_model.predict(np.asarray(element))
@@ -282,7 +281,6 @@ def create_dictionaries():
     'Name 7': '', 'Hero 7': ['unknownhero', -1], 'Ult_Charge 7' :['', -1], 'Name 8': '', 'Hero 8': ['unknownhero', -1], 'Ult_Charge 8' :['', -1],
     'Name 9': '', 'Hero 9': ['unknownhero', -1], 'Ult_Charge 9' :['', -1], 'Name 10': '', 'Hero 10': ['unknownhero', -1], 'Ult_Charge 10' :['', -1],
     'Name 11': '', 'Hero 11': ['unknownhero', -1], 'Ult_Charge 11' :['', -1], 'Name 12': '', 'Hero 12': ['unknownhero', -1], 'Ult_Charge 12' :['', -1]}
-
     dict = {'Image': [], 'Duration':[], 'GameState':[], 'Paused':[], 'Kills': [], 'Deaths': [],
     'Name 1': [], 'Hero 1': [], 'Accuracy 1':[], 'Ult_Charge 1': [], 'Ult_Accuracy 1': [], 'Name 2': [], 'Hero 2': [], 'Accuracy 2':[], 'Ult_Charge 2': [], 'Ult_Accuracy 2': [],
     'Name 3': [], 'Hero 3': [], 'Accuracy 3':[], 'Ult_Charge 3': [], 'Ult_Accuracy 3': [], 'Name 4': [], 'Hero 4': [], 'Accuracy 4':[], 'Ult_Charge 4': [], 'Ult_Accuracy 4': [],
@@ -290,7 +288,6 @@ def create_dictionaries():
     'Name 7': [], 'Hero 7': [], 'Accuracy 7':[], 'Ult_Charge 7': [], 'Ult_Accuracy 7': [], 'Name 8': [], 'Hero 8': [], 'Accuracy 8':[], 'Ult_Charge 8': [], 'Ult_Accuracy 8': [],
     'Name 9': [], 'Hero 9': [], 'Accuracy 9':[], 'Ult_Charge 9': [], 'Ult_Accuracy 9': [], 'Name 10': [], 'Hero 10': [], 'Accuracy 10':[], 'Ult_Charge 10': [], 'Ult_Accuracy 10': [],
     'Name 11': [], 'Hero 11': [], 'Accuracy 11':[], 'Ult_Charge 11': [], 'Ult_Accuracy 11': [], 'Name 12': [], 'Hero 12': [], 'Accuracy 12':[], 'Ult_Charge 12': [], 'Ult_Accuracy 12': []}
-
     return previous_prediction, dict
 
 def clean_predictions(map, all_predictions):
@@ -562,75 +559,27 @@ def clean_predictions(map, all_predictions):
     for key in dict.keys():
         print(key + ": " + str(len(dict[key])))
 
+    return dict
+
 """
 Make the beautiful CSV that we said we would
 """
 if __name__ == '__main__':
-
     csv_folder = "csvs/to_csv/"
     scrim_folder = "vod_data/"
+
     for folder in os.listdir(scrim_folder):
         vod_path = scrim_folder + folder + "/"
         print("================================================")
+        print("Currently processing:", scrim_folder + folder)
+        print("===============================================")
         print("Relabeling files")
         print("================================================")
         sorted_image_array = relabel_folder_contents(vod_path)
-        print("Currently processing:", folder)
-        print("===============================================")
-        date, map, opponent = hit_or_miss(vod_path, sorted_image_array)
+        dict, date, map, opponent = hit_or_miss(vod_path, sorted_image_array)
         df = pd.DataFrame(data = dict)
         df.insert(1, 'Map', map)
         df.insert(2, 'Opponent', opponent)
         df.insert(1, 'Date', date)
         df.to_csv(csv_folder + folder + ".csv", sep=',')
         print("Successfully created csv!")
-    """
-    csv_folder = "csvs/"
-    scrim_folder = "vod_data/"
-    for folder in os.listdir(scrim_folder):
-        vod_path = scrim_folder + folder + "/"
-        print("================================================")
-        print("Relabeling files")
-        print("Relabeling: ", folder)
-        print("================================================")
-    vod_path = "vod_data/01.04.2019+SF+vs+DAL+RIALTO/"
-    sorted_img_array = relabel_folder_contents(vod_path)
-    print("================================================")
-    print("Loading Images")
-    print("================================================")
-    temp = sorted_img_array
-    images = sorted_img_array
-
-    kills_array, deaths_array, assists_array, kills_colors, deaths_colors, assists_colors = killfeed_load_images_for_model(temp, resize_to_720P = True, train = False)
-    print("================================================")
-    print("Predicting Images")
-    print("================================================")
-    all_predictions = {'Images':[], 'Kills':[], 'Deaths': []}
-
-    for element in kills_array:
-        img_kills = []
-        kills_predict = killfeed_model.predict(np.asarray(element))
-        for index, image in enumerate(kills_predict):
-            img = image.tolist()
-            img_kills.append([inverse_killfeed[img.index(max(img))], max(img)])
-        all_predictions['Kills'].append(img_kills)
-    for element in deaths_array:
-        img_deaths = []
-        deaths_predict = killfeed_model.predict(np.asarray(element))
-        for index, image in enumerate(deaths_predict):
-            img = image.tolist()
-            img_deaths.append([inverse_killfeed[img.index(max(img))], max(img)])
-        all_predictions['Deaths'].append(img_deaths)
-    all_predictions['Images'] = temp
-    all_predictions['Kills_Colors'] = kills_colors
-    all_predictions['Deaths_Colors'] = deaths_colors
-
-    print("================================================")
-    print("Filtering Predictions")
-    print("================================================")
-    #print(all_predictions)
-    for key in all_predictions.keys():
-        print(key + ": " + str(len(all_predictions[key])))
-    df = pd.DataFrame(data = all_predictions)
-    df.to_csv(csv_folder + "STUPID+multitest.csv", sep=',')
-    """

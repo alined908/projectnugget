@@ -1,0 +1,6 @@
+,Date,Map,Team,Roundname,Composition,Duration
+0,4/1/2019,RIALTO,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",DEFENSE,"('reinhardt', 'dva', 'zarya', 'baptiste', 'lucio', 'zenyatta')",454.25
+1,4/1/2019,RIALTO,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",ATTACK,"('reinhardt', 'dva', 'zarya', 'brig', 'lucio', 'zenyatta')",387.5
+2,4/1/2019,RIALTO,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOOS']",ATTACK,"('reinhardt', 'dva', 'zarya', 'baptiste', 'zenyatta', 'lucio')",378.25
+3,4/1/2019,RIALTO,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOOS']",ATTACK,"('hammond', 'dva', 'zarya', 'baptiste', 'zenyatta', 'lucio')",76.0
+4,4/1/2019,RIALTO,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOOS']",DEFENSE,"('reinhardt', 'dva', 'zarya', 'baptiste', 'zenyatta', 'lucio')",387.5

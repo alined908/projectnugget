@@ -26,10 +26,9 @@ $ cd projectnugget
     * Delete map loading images (in between lobby and actual map)
     * If map is koth, get image [**roundreset.jpg**](misc/roundreset.jpg) and replace first image of new round (round 2, 3)
 1. `python to_csv.py` ----> Runs models on match images to output csv
-1. Clean csv
-    * Create a column after 'Opponent' called 'Roundtype' and input roundtype manually (Ex. Attack/Defense/Gardens/Shrine).  If you see a long chain (>6) of same duration, then roundswap happens at the second row of the ones that have the same duration (aka when "unknownhero" appears)
-    * Go over d.va's ult charge and correct column if need be to be accurately representing d.va's ult situation
-    * Glance over csv and make sure rows make sense
+1. Clean csv (make sure rows make sense)
+    * Create a column after 'Opponent' called 'Roundtype' and input roundtype manually (Ex. Attack/Defense/Gardens/Shrine).
+    * Go over d.va's ult charge and correct column
 1. `python get_map_stats.py` -- > Outputs match statistics
 
 ## Example Outputs
@@ -37,7 +36,4 @@ $ cd projectnugget
 * [**Match Summary**](misc/matchsummary.PNG) **|** [**Fight Statistics**](misc/fightstats.PNG)
 
 ## Todo
-* **Major**
-  * Set up database to store statistics
-* **Minor**
-  * Suicides & Eliminate (or don't count) rows that happen x seconds before new round.
+* Suicides & Eliminate (or don't count) rows that happen x seconds before new round.

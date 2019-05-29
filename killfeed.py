@@ -5,7 +5,6 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
 IMAGE_PATH = "E:/Project Nugget/killfeed_images/"
 
 #Killfeed Top Row Coordinates used as baseline

@@ -1,16 +1,16 @@
 ,Date,Map,Team,Roundname,Composition,Duration
-0,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",MEKA,"('hammond', 'dva', 'sombra', 'brig', 'lucio', 'ana')",14.25
+0,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",MEKA,"('hammond', 'dva', 'sombra', 'brig', 'lucio', 'ana')",16.5
 1,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",MEKA,"('reinhardt', 'dva', 'zarya', 'brig', 'lucio', 'zenyatta')",246.75
 2,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",MEKA,"('reinhardt', 'dva', 'sombra', 'brig', 'lucio', 'zenyatta')",22.0
 3,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",MEKA,"('reinhardt', 'hammond', 'zarya', 'brig', 'lucio', 'zenyatta')",31.5
-4,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",SANCTUARY,"('reinhardt', 'hammond', 'zarya', 'brig', 'lucio', 'tracer')",8.25
+4,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",MEKA,"('reinhardt', 'hammond', 'zarya', 'brig', 'lucio', 'tracer')",8.25
 5,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",SANCTUARY,"('reinhardt', 'dva', 'zarya', 'brig', 'lucio', 'zenyatta')",212.75
 6,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",DOWNTOWN,"('reinhardt', 'dva', 'zarya', 'brig', 'lucio', 'zenyatta')",16.75
 7,4/1/2019,BUSAN,"['SUPER', 'CHOIHYOBIN', 'SINATRAA', 'RASCAL', 'MOTH', 'NIGHTHAWK']",DOWNTOWN,"('winston', 'dva', 'sombra', 'brig', 'lucio', 'moira')",240.75
-8,4/1/2019,BUSAN,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOO6']",MEKA,"('reinhardt', 'dva', 'zarya', 'baptiste', 'zenyatta', 'lucio')",289.75
+8,4/1/2019,BUSAN,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOO6']",MEKA,"('reinhardt', 'dva', 'zarya', 'baptiste', 'zenyatta', 'lucio')",292.0
 9,4/1/2019,BUSAN,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOO6']",MEKA,"('hammond', 'dva', 'zarya', 'baptiste', 'zenyatta', 'lucio')",19.25
 10,4/1/2019,BUSAN,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOO6']",MEKA,"('hammond', 'dva', 'zarya', 'baptiste', 'tracer', 'lucio')",14.25
-11,4/1/2019,BUSAN,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOO6']",SANCTUARY,"('hammond', 'dva', 'sombra', 'baptiste', 'tracer', 'lucio')",5.0
+11,4/1/2019,BUSAN,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOO6']",MEKA,"('hammond', 'dva', 'sombra', 'baptiste', 'tracer', 'lucio')",5.0
 12,4/1/2019,BUSAN,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOO6']",SANCTUARY,"('reinhardt', 'dva', 'zarya', 'baptiste', 'ana', 'lucio')",16.75
 13,4/1/2019,BUSAN,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOO6']",SANCTUARY,"('reinhardt', 'dva', 'zarya', 'baptiste', 'zenyatta', 'lucio')",196.0
 14,4/1/2019,BUSAN,"['OGE', 'PERALTA', 'AKM', 'ZACHAREEE', 'UNKOE', 'GOO6']",DOWNTOWN,"('hammond', 'tracer', 'widow', 'sombra', 'ana', 'lucio')",167.5

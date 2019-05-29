@@ -271,9 +271,10 @@ def get_kill_deaths(csv_path, team1, team2):
 
 def append_fight_stats(general_fight_dict, kill_array, death_array, curr_row_time, timestamp, team1, team2, team1_hero_roster, team2_hero_roster,
 total_kill_sequence, team1_kill_sequence, team2_kill_sequence, total_death_sequence, team1_death_sequence, team2_death_sequence,
-total_ult_sequence, team1_ult_sequence, team2_ult_sequence, map, roundtype):
+total_ult_sequence, team1_ult_sequence, team2_ult_sequence, map, roundtype, fight_player_dict):
 
     kill_name, kill_hero, death_name, death_hero = kill_array[0], kill_array[1], death_array[0], death_array[1]
+
     #First Blood
     roster = []
     first_blood_name = total_kill_sequence[0][0]
@@ -283,11 +284,13 @@ total_ult_sequence, team1_ult_sequence, team2_ult_sequence, map, roundtype):
         roster = team2
 
     #Winner
-    winners = []
+    winners, losers, winners_kill_sequence, winners_death_sequence, losers_kill_sequence, losers_death_sequence = [], [], [], [], [], []
     if len(team1_kill_sequence) > len(team2_kill_sequence):
-        winners = team1
+        winners, losers, winner_heroes, loser_heroes = team1, team2, team1_hero_roster, team2_hero_roster
+        winners_kill_sequence, losers_kill_sequence, winners_death_sequence, losers_death_sequence = team1_kill_sequence, team2_kill_sequence, team1_death_sequence, team2_death_sequence
     elif len(team1_kill_sequence) < len(team2_kill_sequence):
-        winners = team2
+        winners, losers, winner_heroes, loser_heroes = team2, team1, team2_hero_roster, team1_hero_roster
+        winners_kill_sequence, losers_kill_sequence, winners_death_sequence, losers_death_sequence = team2_kill_sequence, team1_kill_sequence, team2_death_sequence, team1_death_sequence
     else:
         pass
         #print("SAME # OF KILLS")
@@ -319,6 +322,62 @@ total_ult_sequence, team1_ult_sequence, team2_ult_sequence, map, roundtype):
     #general_fight_dict['L # Ults Avail'].append()
     #general_fight_dict['R # Ults Avail'].append()
 
+    try:
+        winners_first_kill_name = winners_kill_sequence[0][0]
+    except IndexError:
+        winners_first_kill_name = ""
+    try:
+        winners_first_death_name = winners_death_sequence[0][0]
+    except IndexError:
+        winners_first_death_name = ""
+    try:
+        losers_first_kill_name = losers_kill_sequence[0][0]
+    except IndexError:
+        losers_first_kill_name = ""
+    try:
+        losers_first_death_name = losers_death_sequence[0][0]
+    except IndexError:
+        losers_first_death_name = ""
+
+    #Fight player Information
+    for index, player in enumerate(winners):
+        hero = winner_heroes[index]
+
+        if hero in fight_player_dict[player]['Heroes']:
+            fight_player_dict[player]['Heroes'][hero]['Win'] += 1
+            fight_player_dict[player]['Heroes'][hero]['Total'] += 1
+        else:
+            fight_player_dict[player]['Heroes'][hero] = {'Win': 1, 'Lose': 0, 'Total': 1, 'First Kill': 0, 'First Death' : 0}
+
+        if player == winners_first_kill_name:
+            fight_player_dict[player]['Heroes'][hero]['First Kill'] += 1
+            fight_player_dict[player]['Totals']['First Kill'] += 1
+        if player == winners_first_death_name:
+            fight_player_dict[player]['Heroes'][hero]['First Death'] += 1
+            fight_player_dict[player]['Totals']['First Death'] += 1
+
+        fight_player_dict[player]['Totals']['Win'] += 1
+        fight_player_dict[player]['Totals']['Total'] += 1
+
+    for index, player in enumerate(losers):
+        hero = loser_heroes[index]
+
+        if hero in fight_player_dict[player]['Heroes']:
+            fight_player_dict[player]['Heroes'][hero]['Lose'] += 1
+            fight_player_dict[player]['Heroes'][hero]['Total'] += 1
+        else:
+            fight_player_dict[player]['Heroes'][hero] = {'Win': 0, 'Lose': 1, 'Total': 1, 'First Kill': 0, 'First Death' : 0}
+
+        if player == losers_first_kill_name:
+            fight_player_dict[player]['Heroes'][hero]['First Kill'] += 1
+            fight_player_dict[player]['Totals']['First Kill'] += 1
+        if player == losers_first_death_name:
+            fight_player_dict[player]['Heroes'][hero]['First Death'] += 1
+            fight_player_dict[player]['Totals']['First Death'] += 1
+
+        fight_player_dict[player]['Totals']['Lose'] += 1
+        fight_player_dict[player]['Totals']['Total'] += 1
+
     # print("Map:", map, "--> Roundtype (SFS):", roundtype)
     # print("Length of Fight: " + str(curr_row_time - timestamp), "====> First Blood: ", total_kill_sequence[0], "====> Winner: ", winners)
     # print("Team 1 Hero Roster:", team1_hero_roster)
@@ -348,7 +407,7 @@ total_ult_sequence, team1_ult_sequence, team2_ult_sequence, map, roundtype):
 # Note: Be cautious of how dva ult is tracked
 def get_fight_stats(csv_path, team1, team2, map):
     df = pd.read_csv(csv_path, sep = ",")
-    fight_player_dict = {key: {'Fights': {'Win': 0, 'Lose': 0, 'Total': 0}, 'First Elim': 0, 'First Death' : 0} for key in (team1+team2)}
+    fight_player_dict = {key: {'Totals': {'Win': 0, 'Lose': 0, 'Total': 0, 'First Kill': 0, 'First Death' : 0}, 'Heroes': {}} for key in (team1+team2)}
     general_fight_dict = {'Map': [], 'Roundtype': [], 'Length': [], 'L Players': [], 'L Heroes': [], 'R Players': [], 'R Heroes': [], 'First Blood': [], 'Winner': [],
     'L Kill #': [], 'R Kill #': [], 'L # Ults Used': [], 'R # Ults Used': [], 'Total Kill Sequence': [], 'L Kill Sequence': [], 'R Kill Sequence': [],
     'Total Death Sequence': [], 'L Death Sequence': [], 'R Death Sequence': [], 'L Ult Sequence': [], 'R Ult Sequence': []}
@@ -467,9 +526,9 @@ def get_fight_stats(csv_path, team1, team2, map):
 
                 #Append fight info to general fight dict
                 append_fight_stats(general_fight_dict, kill_array, death_array, curr_row_time, timestamp, team1, team2, team1_hero_roster, team2_hero_roster,
-                total_kill_sequence, team1_kill_sequence, team2_kill_sequence, total_death_sequence, team1_death_sequence, team2_death_sequence, total_ult_sequence, team1_ult_sequence, team2_ult_sequence, map, roundtype)
+                total_kill_sequence, team1_kill_sequence, team2_kill_sequence, total_death_sequence, team1_death_sequence, team2_death_sequence, total_ult_sequence, team1_ult_sequence, team2_ult_sequence, map, roundtype, fight_player_dict)
 
-    return general_fight_dict
+    return general_fight_dict, fight_player_dict
 
 def print_example(csv_path, date, map, opponent, total_game_time, team1, team2, team1_comps, team2_comps, team1_ttcu, team2_ttcu, team1_kd, team2_kd, general_fight_stats):
     print("===============================================")
@@ -513,8 +572,8 @@ def print_example(csv_path, date, map, opponent, total_game_time, team1, team2, 
     # print("===============================================")
     # print(general_fight_stats)
 
-def create_general_dict(team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu, team1_kd, team2_kd):
-    general_dict = {'Name': [], 'Hero': [], 'Kill': [], 'Death': [], 'TTCU': [], 'TTUU': []}
+def create_general_dict(team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu, team1_kd, team2_kd, player_fight_stats):
+    general_dict = {'Name': [], 'Hero': [], 'Kill': [], 'Death': [], 'TTCU': [], 'TTUU': [], 'Fight #': [], 'Fight Win': [], 'Fight Lose': [], 'First Kill': [], 'First Death': []}
     ttcu_dict, ttuu_dict, kd_dict = dict(team1_ttcu, **team2_ttcu), dict(team1_ttuu, **team2_ttuu), dict(team1_kd, **team2_kd)
 
     for name in kd_dict:
@@ -533,10 +592,22 @@ def create_general_dict(team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu, team1_kd
                 general_dict['TTUU'].append([])
             else:
                 general_dict['TTUU'].append(ttuu_dict[name][hero])
+            if hero in player_fight_stats[name]['Heroes']:
+                general_dict['Fight #'].append(player_fight_stats[name]['Heroes'][hero]['Total'])
+                general_dict['Fight Win'].append(player_fight_stats[name]['Heroes'][hero]['Win'])
+                general_dict['Fight Lose'].append(player_fight_stats[name]['Heroes'][hero]['Lose'])
+                general_dict['First Kill'].append(player_fight_stats[name]['Heroes'][hero]['First Kill'])
+                general_dict['First Death'].append(player_fight_stats[name]['Heroes'][hero]['First Death'])
+            if hero not in player_fight_stats[name]['Heroes']:
+                general_dict['Fight #'].append(0)
+                general_dict['Fight Win'].append(0)
+                general_dict['Fight Lose'].append(0)
+                general_dict['First Kill'].append(0)
+                general_dict['First Death'].append(0)
 
     return general_dict
 
-def create_csvs(date, map, opponent, total_game_time, team1, team2, team1_comps, team2_comps, team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu, team1_kd, team2_kd, fight_stats):
+def create_csvs(date, map, opponent, total_game_time, team1, team2, team1_comps, team2_comps, team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu, team1_kd, team2_kd, fight_stats, player_fight_stats):
     #Handle Fight CSV
     fight_df = pd.DataFrame.from_dict(fight_stats)
     fight_df.insert(0, 'Date', date)
@@ -549,7 +620,7 @@ def create_csvs(date, map, opponent, total_game_time, team1, team2, team1_comps,
     comps_df.insert(1, 'Map', map)
 
     #Handle General Information CSV
-    general_dict = create_general_dict(team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu, team1_kd, team2_kd)
+    general_dict = create_general_dict(team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu, team1_kd, team2_kd, player_fight_stats)
     general_df = pd.DataFrame.from_dict(general_dict)
     general_df.insert(0, 'Date', date)
     general_df.insert(1, 'Map', map)
@@ -568,9 +639,9 @@ if __name__ == '__main__':
         team1_comps, team2_comps = get_teamcomps(csv_path, map, team1, team2)
         team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu = get_ttcu_ttuu(csv_path, team1, team2)
         team1_kd, team2_kd = get_kill_deaths(csv_path, team1, team2)
-        general_fight_stats = get_fight_stats(csv_path, team1, team2, map)
+        general_fight_stats, player_fight_stats = get_fight_stats(csv_path, team1, team2, map)
         print_example(csv, date, map, opponent, total_game_time, team1, team2, team1_comps, team2_comps, team1_ttcu, team2_ttcu, team1_kd, team2_kd, general_fight_stats)
-        general_df, comps_df, fight_df = create_csvs(date, map, opponent, total_game_time, team1, team2, team1_comps, team2_comps, team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu, team1_kd, team2_kd, general_fight_stats)
+        general_df, comps_df, fight_df = create_csvs(date, map, opponent, total_game_time, team1, team2, team1_comps, team2_comps, team1_ttcu, team2_ttcu, team1_ttuu, team2_ttuu, team1_kd, team2_kd, general_fight_stats, player_fight_stats)
 
         comps_df.to_csv(stats_folder + stripped_csv_name + "+Comps.csv", sep=',')
         print("Created " + stripped_csv_name + "+Comps.csv")

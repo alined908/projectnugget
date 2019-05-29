@@ -33,7 +33,7 @@ $ cd projectnugget
 
 ## Example Outputs
 * [**CSV Output**](csvs/to_csv/01.04.2019%2BSF%2Bvs%2BDAL%2BRIALTO.csv)
-* [**Match Summary**](misc/matchsummary.PNG) **|** [**Fight Statistics**](misc/fightstats.PNG)
+* [**General Statistics**](csvs/get_map_stats/01.04.2019%2BSF%2Bvs%2BDAL%2BBUSAN%2BGeneral.csv) **|** [**Compositions**](csvs/get_map_stats/01.04.2019%2BSF%2Bvs%2BDAL%2BBUSAN%2BComps.csv) **|** [**Fight Statistics**](csvs/get_map_stats/01.04.2019%2BSF%2Bvs%2BDAL%2BRIALTO%2BFights.csv)
 
 ## Todo
 * Suicides & Eliminate (or don't count) rows that happen x seconds before new round.

@@ -17,18 +17,19 @@ $ cd projectnugget
   * Lobby needs to be reset one time after entering a new map (Blizzard's colorblind bug)
   * Resolution: 1920 x 1080
 * **Other**
-  * Create these empty folders in `Project Nugget/` --> `/vods`, `/vod_data`, `/data`
+  * Create these empty folders in `Project Nugget/` --> `/vods`, `/vod_data`
+  * Format of vod names should be ex. `01.04.2019+SFS+vs+DAL+RIALTO`  where date is `dd.mm.yyyy`
 
 ## Instructions
 1. Place .mp4 scrim recordings in `/vods`
-1. `python parse_vod.py` ---> Parses vods in `/vods` into images  
-1. Move folders with images generated in `/data` into `/vod_data` where format of folder should be ex. `01.04.2019+SF+vs+DAL+RIALTO`  where date format is `dd.mm.yyyy`
-    * Delete map loading images (in between lobby and actual map)
-    * If map is koth, get image [**roundreset.jpg**](misc/roundreset.jpg) and replace first image of new round (round 2, 3)
+1. `python parse_vod.py` ---> Parses vods in `/vods` into images located in `/vod_data`
+1. In `/vod_data`, Clean image folder
+    * Delete map loading images [**Example 1**](misc/maploading.jpg) , [**Example 2**](misc/maploading2.jpg)
+    * If map is koth, get image [**Round Reset**](misc/roundreset.jpg) and replace first image of new round (round 2, 3)
 1. `python to_csv.py` ----> Runs models on match images to output csv
-1. Clean csv (make sure rows make sense)
+1. In `/csvs/to_csv`, Clean csv
     * Create a column after 'Opponent' called 'Roundtype' and input roundtype manually (Ex. Attack/Defense/Gardens/Shrine).
-    * Go over d.va's ult charge and correct column
+    * Go over hero's ult charge and correct column (usually just D.Va)
 1. `python get_map_stats.py` -- > Outputs match statistics
 
 ## Example Outputs

@@ -5,14 +5,7 @@ A computer vision project created for SF Shock, a professional esports team in t
 ```
 $ git clone https://github.com/alined908/projectnugget.git
 $ cd projectnugget
-$ pip install opencv-python
-$ pip install tensorflow
-$ pip install keras
-$ pip install numpy
-$ pip install pandas
-$ pip install matplotlib
-$ pip install imutils
-$ pip install pytesseract
+$ pip install opencv-python tensorflow keras numpy pandas matplotlib imutils pytesseract 
 ```
 ### Prerequisites
 * **Dependencies**

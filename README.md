@@ -1,5 +1,5 @@
 # Project Nugget
-A computer vision project created for SF Shock, a professional esports team in the Overwatch League.  Overwatch has no API to interact with and obtain statistics of practice matches, but hopefully with this, one can record scrims from the spectator POV and extract valuable game information/statistics from the VOD. This project uses convolutional neural nets that are trained on datasets created by ourselves. Training set images will be available soon.
+A computer vision project created for SF Shock, a professional esports team in the Overwatch League.  Overwatch has no API to interact with and obtain statistics of practice matches, but hopefully with this, one can record scrims from the spectator POV and extract valuable game information/statistics from the VOD. This project uses convolutional neural nets that are trained on datasets created by ourselves. Training set images can be found [here](https://archive.org/compress/project_nugget_dataset/formats=JPEG&file=/project_nugget_dataset.zip)
 ## Getting Started
 ### Project Setup
 ```
